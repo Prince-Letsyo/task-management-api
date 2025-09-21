@@ -11,7 +11,10 @@ class TaskService:
     def create_task(self, task_create: schemas.TaskCreate) -> schemas.Task:
         new_id = max(task.id for task in models.tasks) + 1 if models.tasks else 1
         new_task = models.Task(
-            id=new_id, title=task_create.title, description=task_create.description
+            id=new_id,
+            title=task_create.title,
+            description=task_create.description,
+            due_date=task_create.due_date,
         )
         models.tasks.append(new_task)
         return schemas.Task.from_orm(new_task)
@@ -30,6 +33,8 @@ class TaskService:
                     task.title = task_update.title
                 if task_update.description is not None:
                     task.description = task_update.description
+                if task_update.due_date is not None:
+                    task.due_date = task_update.due_date
                 return schemas.Task.from_orm(task)
         return None
 

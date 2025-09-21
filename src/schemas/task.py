@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class TaskBase(BaseModel):
     title: str
     description: str | None = None
+    due_date: str | None = None  # ISO 8601 date string, optional
 
 
 class TaskCreate(TaskBase):
@@ -17,9 +18,8 @@ class Task(TaskBase):
         from_attributes = True
 
 
-class TaskUpdate(BaseModel):
+class TaskUpdate(TaskBase):
     title: str | None = None
-    description: str | None = None
 
 
 class TaskError(BaseModel):

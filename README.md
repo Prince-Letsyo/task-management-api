@@ -1,6 +1,6 @@
 # Task Management API
 
-A simple RESTful API for managing tasks, built with FastAPI and Pydantic. This project demonstrates basic CRUD operations with in-memory storage, making it ideal for learning or prototyping.
+A simple RESTful API for managing tasks, built with FastAPI and Pydantic. This project demonstrates basic CRUD operations with in-memory storage, making it ideal for learning, prototyping, or as a foundation for more complex systems.
 
 ## Features
 
@@ -49,6 +49,10 @@ src/
    uvicorn src.main:app --reload
    ```
 
+## Usage
+
+Once the server is running, access the interactive API docs at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+
 ## API Endpoints
 
 ### Get All Tasks
@@ -68,7 +72,8 @@ src/
   ```json
   {
     "title": "Task Title",
-    "description": "Optional description"
+    "description": "Optional description",
+    "due_date": "YYYY-MM-DD"
   }
   ```
 - **Response:** Created task object
@@ -80,7 +85,8 @@ src/
   ```json
   {
     "title": "Updated Title",
-    "description": "Updated description"
+    "description": "Updated description",
+    "due_date": "YYYY-MM-DD"
   }
   ```
 - **Response:** Updated task object
@@ -106,7 +112,7 @@ src/
 ```sh
 curl -X POST "http://127.0.0.1:8000/api/tasks" \
      -H "Content-Type: application/json" \
-     -d '{"title": "Write docs", "description": "Complete the README"}'
+     -d '{"title": "Write docs", "description": "Complete the README", "due_date": "2025-09-30"}'
 ```
 
 ## Development
@@ -114,6 +120,12 @@ curl -X POST "http://127.0.0.1:8000/api/tasks" \
 - Python 3.13+
 - FastAPI
 - Uvicorn
+
+## Further Reading
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Pydantic Documentation](https://docs.pydantic.dev/)
+- [Uvicorn Documentation](https://www.uvicorn.org/)
 
 ## License
 
