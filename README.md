@@ -10,6 +10,7 @@ A simple RESTful API for managing tasks, built with FastAPI and Pydantic. This p
 - Update or partially update tasks
 - Delete tasks
 - In-memory data storage (no database required)
+- Interactive API documentation via Swagger UI
 
 ## Project Structure
 
@@ -114,6 +115,17 @@ curl -X POST "http://127.0.0.1:8000/api/tasks" \
      -H "Content-Type: application/json" \
      -d '{"title": "Write docs", "description": "Complete the README", "due_date": "2025-09-30"}'
 ```
+
+## Testing
+
+To run tests (if available), use:
+```sh
+pytest
+```
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request.
 
 ## Development
 

@@ -5,7 +5,7 @@ class TaskService:
     def get_task_by_id(self, task_id: int) -> schemas.Task | None:
         for task in models.tasks:
             if task.id == task_id:
-                return schemas.Task.from_orm(task)
+                return schemas.Task.model_validate(task)
         return None
 
     def create_task(self, task_create: schemas.TaskCreate) -> schemas.Task:
@@ -17,12 +17,12 @@ class TaskService:
             due_date=task_create.due_date,
         )
         models.tasks.append(new_task)
-        return schemas.Task.from_orm(new_task)
+        return schemas.Task.model_validate(new_task)
 
     def get_all_tasks(
         self,
     ) -> list[schemas.Task]:
-        return [schemas.Task.from_orm(task) for task in models.tasks]
+        return [schemas.Task.model_validate(task) for task in models.tasks]
 
     def update_task(
         self, task_id: int, task_update: schemas.TaskUpdate
@@ -35,7 +35,7 @@ class TaskService:
                     task.description = task_update.description
                 if task_update.due_date is not None:
                     task.due_date = task_update.due_date
-                return schemas.Task.from_orm(task)
+                return schemas.Task.model_validate(task)
         return None
 
     def partial_update_task(

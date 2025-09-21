@@ -27,7 +27,7 @@ def get_task_by_id(task_id: int, service: TaskService = Depends(lambda: task_ser
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=TaskError(error=f"Task with id {task_id} not found").dict(),
+            detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
     return task
 
@@ -67,7 +67,7 @@ def update_task(
     if updated_task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=TaskError(error=f"Task with id {task_id} not found").dict(),
+            detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
     return updated_task
 
@@ -95,7 +95,7 @@ def partial_update_task(
     if updated_task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=TaskError(error=f"Task with id {task_id} not found").dict(),
+            detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
     return updated_task
 
@@ -116,6 +116,6 @@ def delete_task(task_id: int, service: TaskService = Depends(lambda: task_servic
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=TaskError(error=f"Task with id {task_id} not found").dict(),
+            detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
     return None
