@@ -1,12 +1,14 @@
 # Task Management API
 
-A simple FastAPI-based RESTful API for managing tasks. This project demonstrates basic CRUD operations using Python 3.13, FastAPI, and Pydantic.
+A simple RESTful API for managing tasks, built with FastAPI and Pydantic. This project demonstrates basic CRUD operations with in-memory storage, making it ideal for learning or prototyping.
 
 ## Features
 
 - Retrieve all tasks
 - Get a task by ID
 - Create new tasks
+- Update or partially update tasks
+- Delete tasks
 - In-memory data storage (no database required)
 
 ## Project Structure
@@ -62,7 +64,7 @@ src/
 ### Create Task
 
 - **POST** `/api/tasks`
-- **Body:**  
+- **Body:**
   ```json
   {
     "title": "Task Title",
@@ -70,6 +72,34 @@ src/
   }
   ```
 - **Response:** Created task object
+
+### Update Task
+
+- **PUT** `/api/tasks/{task_id}`
+- **Body:**
+  ```json
+  {
+    "title": "Updated Title",
+    "description": "Updated description"
+  }
+  ```
+- **Response:** Updated task object
+
+### Partial Update Task
+
+- **PATCH** `/api/tasks/{task_id}`
+- **Body:** (Any subset of fields)
+  ```json
+  {
+    "title": "New Title"
+  }
+  ```
+- **Response:** Updated task object
+
+### Delete Task
+
+- **DELETE** `/api/tasks/{task_id}`
+- **Response:** Success message or error
 
 ## Example Request
 
