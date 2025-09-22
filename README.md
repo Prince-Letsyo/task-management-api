@@ -1,148 +1,156 @@
 # Task Management API
 
-A simple RESTful API for managing tasks, built with FastAPI and Pydantic. This project demonstrates basic CRUD operations with in-memory storage, making it ideal for learning, prototyping, or as a foundation for more complex systems.
+A simple **FastAPI**-powered RESTful API for managing tasks.  
+Currently, tasks are stored **in-memory**, making this ideal for demos, learning, or as a starter template for production APIs.
 
-## Features
+---
 
-- Retrieve all tasks
-- Get a task by ID
-- Create new tasks
-- Update or partially update tasks
-- Delete tasks
-- In-memory data storage (no database required)
-- Interactive API documentation via Swagger UI
+## 🚀 Tech Stack
 
-## Project Structure
+- **Python** ≥ 3.13  
+- **FastAPI** — API framework  
+- **Pydantic** — request/response validation  
+- **Uvicorn** — ASGI server  
+- **pytest** — testing framework  
+
+---
+
+## 📂 Project Structure
 
 ```
-src/
-  main.py                # FastAPI app entry point
-  api/
-    endpoints/
-      task.py            # Task-related API endpoints
-  models/
-    task.py              # Task data model and in-memory storage
-  schemas/
-    task.py              # Pydantic schemas for validation
-  services/
-    task_services.py     # Business logic for tasks
+task-management-api/
+├── src/
+│   ├── main.py                # Application entry point
+│   ├── api/
+│   │   └── endpoints/
+│   │       └── task.py        # Task endpoints (CRUD)
+│   ├── models/
+│   │   └── task.py            # Task domain model & in-memory storage
+│   ├── schemas/
+│   │   └── task.py            # Pydantic schemas for validation
+│   └── services/
+│       └── task_services.py   # Business logic for tasks
+├── tests/                     # Unit & integration tests
+├── .gitignore
+├── .python-version
+├── README.md
+├── pyproject.toml             # Project metadata & dependencies
+└── uv.lock                    # Lock file for dependencies
 ```
 
-## Installation
+---
 
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/yourusername/task-management-api.git
+## ⚡ Installation & Running Locally
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Prince-Letsyo/task-management-api.git
    cd task-management-api
    ```
 
-2. **Install dependencies:**
-   ```sh
-   pip install -r requirements.txt
-   ```
-   Or, if using [pyproject.toml](pyproject.toml):
-   ```sh
+2. Install dependencies:
+   ```bash
    pip install .
    ```
+   *(or use `pip install -r requirements.txt` if you generate one)*
 
-3. **Run the API server:**
-   ```sh
+3. Run the server:
+   ```bash
    uvicorn src.main:app --reload
    ```
 
-## Usage
+4. Access the app:
+   - Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+   - ReDoc: [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
-Once the server is running, access the interactive API docs at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+---
 
-## API Endpoints
+## 📡 API Endpoints
 
-### Get All Tasks
+| Method | Endpoint        | Description              | Body Parameters |
+|--------|----------------|--------------------------|----------------|
+| GET    | `/tasks`       | Get all tasks            | — |
+| GET    | `/tasks/{id}`  | Get a task by ID         | — |
+| POST   | `/tasks`       | Create a new task        | `title` (str), `description` (str, optional), `due_date` (date) |
+| PUT    | `/tasks/{id}`  | Update a task completely | same as `POST` |
+| PATCH  | `/tasks/{id}`  | Partial update of a task | any subset of fields |
+| DELETE | `/tasks/{id}`  | Delete a task            | — |
 
-- **GET** `/tasks`
-- **Response:** List of tasks
+---
 
-### Get Task by ID
+## 📝 Example Usage
 
-- **GET** `/tasks/{task_id}`
-- **Response:** Task object or error message
-
-### Create Task
-
-- **POST** `/tasks`
-- **Body:**
-  ```json
-  {
-    "title": "Task Title",
-    "description": "Optional description",
-    "due_date": "YYYY-MM-DD"
-  }
-  ```
-- **Response:** Created task object
-
-### Update Task
-
-- **PUT** `/tasks/{task_id}`
-- **Body:**
-  ```json
-  {
-    "title": "Updated Title",
-    "description": "Updated description",
-    "due_date": "YYYY-MM-DD"
-  }
-  ```
-- **Response:** Updated task object
-
-### Partial Update Task
-
-- **PATCH** `/tasks/{task_id}`
-- **Body:** (Any subset of fields)
-  ```json
-  {
-    "title": "New Title"
-  }
-  ```
-- **Response:** Updated task object
-
-### Delete Task
-
-- **DELETE** `/tasks/{task_id}`
-- **Response:** Success message or error
-
-## Example Request
-
-```sh
-curl -X POST "http://127.0.0.1:8000/tasks" \
-     -H "Content-Type: application/json" \
-     -d '{"title": "Write docs", "description": "Complete the README", "due_date": "2025-09-30"}'
+**Create a task**
+```bash
+curl -X POST "http://127.0.0.1:8000/tasks"   -H "Content-Type: application/json"   -d '{"title":"Write docs","description":"Complete README","due_date":"2025-09-30"}'
 ```
 
-## Testing
+**Update task (PATCH)**
+```bash
+curl -X PATCH "http://127.0.0.1:8000/tasks/1"   -H "Content-Type: application/json"   -d '{"title":"Write detailed docs"}'
+```
 
-To run tests (if available), use:
-```sh
+**Delete task**
+```bash
+curl -X DELETE "http://127.0.0.1:8000/tasks/1"
+```
+
+---
+
+## 🔍 Example Responses
+
+**Task object**
+```json
+{
+  "id": 1,
+  "title": "Write docs",
+  "description": "Complete README",
+  "due_date": "2025-09-30"
+}
+```
+
+**Error (task not found)**
+```json
+{
+  "detail": "Task with id 42 not found"
+}
+```
+
+---
+
+## ✅ Running Tests
+
+Run all tests with:
+```bash
 pytest
 ```
 
-## Contributing
+*(Tests cover services, schemas, and endpoints via FastAPI’s `TestClient`.)*
 
-Contributions are welcome! Please fork the repository and submit a pull request.
+---
 
-## Development
+## 📌 Roadmap / Improvements
 
-- Python 3.13+
-- FastAPI
-- Uvicorn
+- [ ] Add persistent storage (SQLite / PostgreSQL)  
+- [ ] Improve error handling & validation (e.g., ensure due date is future)  
+- [ ] Authentication & authorization (user accounts, JWT, etc.)  
+- [ ] Pagination & filtering for large task lists  
+- [ ] Dockerize for deployment  
+- [ ] CI/CD pipeline (GitHub Actions)  
+- [ ] Expand test coverage  
 
-## Further Reading
+---
 
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Pydantic Documentation](https://docs.pydantic.dev/)
-- [Uvicorn Documentation](https://www.uvicorn.org/)
+## 🤝 Contributing
 
-## License
+1. Fork the repo  
+2. Create a feature branch (`git checkout -b feature-name`)  
+3. Commit changes (`git commit -m "Added feature"`)  
+4. Push to branch (`git push origin feature-name`)  
+5. Open a Pull Request  
 
-MIT
+---
 
-## Author
+## 📜 License
 
-Prince
+This project is licensed under the **MIT License**.
