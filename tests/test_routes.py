@@ -1,10 +1,9 @@
 from fastapi.testclient import TestClient
 from src import app
-import pytest
 
 client = TestClient(app)
 
-class TestTaskAPI:
+class TestTaskRoutes:
     @classmethod
     def setup_class(cls):
         # Setup code before any tests run (e.g., clear tasks if needed)
@@ -120,3 +119,40 @@ class TestTaskAPI:
             },
         )
         assert response.status_code == 404
+    
+    def test_delete_nonexistent_task(self):
+        response = self.client.delete("/tasks/9999")
+        assert response.status_code == 404
+    
+    # def test_create_task_invalid_date(self):
+    #     response = self.client.post(
+    #         "/tasks/",
+    #         json={
+    #             "title": "Task with Invalid Date",
+    #             "description": "This task has an invalid date",
+    #             "due_date": "31-12-2024",  # Invalid format
+    #         },
+    #     )
+    #     assert response.status_code == 422
+    #     data = response.json()
+    #     assert "error" in data.details
+    #     assert data["error"] == "Task with invalid date format"
+        
+    # def test_update_task_invalid_date(self):
+    #     task = self.create_task(
+    #         title="Test Task for Update Invalid Date", 
+    #         description="This is a test task for update with invalid date"
+    #     )
+    #     task_id = task["id"]
+    #     response = self.client.put(
+    #         f"/tasks/{task_id}",
+    #         json={
+    #             "title": "Updated Test Task with Invalid Date",
+    #             "description": "This task has been updated with invalid date",
+    #             "due_date": "31-01-2025",  # Invalid format
+    #         },
+    #     )
+    #     assert response.status_code == 400
+    #     data = response.json()
+    #     assert "error" in data
+    #     assert data["error"] == "Task with invalid date format"
