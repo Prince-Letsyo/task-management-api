@@ -8,7 +8,7 @@ task_service = TaskService()
 
 
 @task_router.get(
-    "/tasks/{task_id}",
+    "/{task_id}",
     status_code=status.HTTP_200_OK,
     response_model=Task | TaskError,
     responses={
@@ -32,20 +32,40 @@ def get_task_by_id(task_id: int, service: TaskService = Depends(lambda: task_ser
     return task
 
 
-@task_router.post("/tasks", status_code=status.HTTP_201_CREATED, response_model=Task)
+@task_router.post(
+    "/",
+    status_code=status.HTTP_201_CREATED,
+    response_model=Task,
+    responses={
+        status.HTTP_201_CREATED: {
+            "model": Task,
+            "description": "Item created successfully",
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "model": TaskError,
+            "description": "Invalid attribute format",
+        },
+    },
+)
 def create_task(
     task_create: TaskCreate, service: TaskService = Depends(lambda: task_service)
 ):
-    return service.create_task(task_create)
+    task = service.create_task(task_create)
+    if task is ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=TaskError(error=f"Task with invalid date format").model_dump(),
+        )
+    return task
 
 
-@task_router.get("/tasks", response_model=list[Task])
+@task_router.get("/", response_model=list[Task])
 def get_all_tasks(service: TaskService = Depends(lambda: task_service)):
     return service.get_all_tasks()
 
 
 @task_router.put(
-    "/tasks/{task_id}",
+    "/{task_id}",
     response_model=Task | TaskError,
     responses={
         status.HTTP_200_OK: {
@@ -55,6 +75,10 @@ def get_all_tasks(service: TaskService = Depends(lambda: task_service)):
         status.HTTP_404_NOT_FOUND: {
             "model": TaskError,
             "description": "Item not found",
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "model": TaskError,
+            "description": "Invalid attribute format",
         },
     },
 )
@@ -69,11 +93,16 @@ def update_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
+    elif update_task is ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=TaskError(error=f"Task with invalid date format").model_dump(),
+        )
     return updated_task
 
 
 @task_router.patch(
-    "/tasks/{task_id}",
+    "/{task_id}",
     response_model=Task | TaskError,
     responses={
         status.HTTP_200_OK: {
@@ -83,6 +112,10 @@ def update_task(
         status.HTTP_404_NOT_FOUND: {
             "model": TaskError,
             "description": "Item not found",
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "model": TaskError,
+            "description": "Invalid attribute format",
         },
     },
 )
@@ -97,11 +130,16 @@ def partial_update_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
+    elif update_task is ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=TaskError(error=f"Task with invalid date format").model_dump(),
+        )
     return updated_task
 
 
 @task_router.delete(
-    "/tasks/{task_id}",
+    "/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
         status.HTTP_404_NOT_FOUND: {

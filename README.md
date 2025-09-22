@@ -58,17 +58,17 @@ Once the server is running, access the interactive API docs at [http://127.0.0.1
 
 ### Get All Tasks
 
-- **GET** `/api/tasks`
+- **GET** `/tasks`
 - **Response:** List of tasks
 
 ### Get Task by ID
 
-- **GET** `/api/tasks/{task_id}`
+- **GET** `/tasks/{task_id}`
 - **Response:** Task object or error message
 
 ### Create Task
 
-- **POST** `/api/tasks`
+- **POST** `/tasks`
 - **Body:**
   ```json
   {
@@ -81,7 +81,7 @@ Once the server is running, access the interactive API docs at [http://127.0.0.1
 
 ### Update Task
 
-- **PUT** `/api/tasks/{task_id}`
+- **PUT** `/tasks/{task_id}`
 - **Body:**
   ```json
   {
@@ -94,7 +94,7 @@ Once the server is running, access the interactive API docs at [http://127.0.0.1
 
 ### Partial Update Task
 
-- **PATCH** `/api/tasks/{task_id}`
+- **PATCH** `/tasks/{task_id}`
 - **Body:** (Any subset of fields)
   ```json
   {
@@ -105,13 +105,13 @@ Once the server is running, access the interactive API docs at [http://127.0.0.1
 
 ### Delete Task
 
-- **DELETE** `/api/tasks/{task_id}`
+- **DELETE** `/tasks/{task_id}`
 - **Response:** Success message or error
 
 ## Example Request
 
 ```sh
-curl -X POST "http://127.0.0.1:8000/api/tasks" \
+curl -X POST "http://127.0.0.1:8000/tasks" \
      -H "Content-Type: application/json" \
      -d '{"title": "Write docs", "description": "Complete the README", "due_date": "2025-09-30"}'
 ```

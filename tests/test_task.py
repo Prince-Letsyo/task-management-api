@@ -1,111 +1,122 @@
 from fastapi.testclient import TestClient
 from src import app
+import pytest
 
 client = TestClient(app)
 
+class TestTaskAPI:
+    @classmethod
+    def setup_class(cls):
+        # Setup code before any tests run (e.g., clear tasks if needed)
+        cls.client = client
+        # Optionally clear all tasks before running tests
+        cls._clear_all_tasks()
 
-def test_create_task():
-    response = client.post(
-        "api/tasks/",
-        json={
-            "title": "Test Task",
-            "description": "This is a test task",
-            "due_date": "2024-12-31T23:59:59",
-        },
-    )
-    assert response.status_code == 201
-    data = response.json()
-    assert data["title"] == "Test Task"
-    assert data["description"] == "This is a test task"
-    assert data["due_date"] == "2024-12-31T23:59:59"
+    @classmethod
+    def teardown_class(cls):
+        # Teardown code after all tests run (e.g., cleanup tasks if needed)
+        cls._clear_all_tasks()
 
+    def setup_method(self, method):
+        # Setup before each test method
+        self._clear_all_tasks()
 
-def test_get_tasks():
-    response = client.get("api/tasks/")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
+    def teardown_method(self, method):
+        # Teardown after each test method
+        self._clear_all_tasks()
 
+    @classmethod
+    def _clear_all_tasks(cls):
+        response = cls.client.get("/tasks/")
+        if response.status_code == 200:
+            for task in response.json():
+                cls.client.delete(f"/tasks/{task['id']}")
 
-def test_get_task():
-    # First, create a task to ensure there is one to retrieve
-    create_response = client.post(
-        "api/tasks/",
-        json={
-            "title": "Test Task for Get",
-            "description": "This is a test task for get",
-            "due_date": "2024-12-31T23:59:59",
-        },
-    )
-    task_id = create_response.json()["id"]
+    def create_task(
+        self,
+        title="Test Task",
+        description="This is a test task",
+        due_date="2024-12-31",
+    ):
+        response = self.client.post(
+            "/tasks/",
+            json={
+                "title": title,
+                "description": description,
+                "due_date": due_date,
+            },
+        )
+        assert response.status_code == 201
+        return response.json()
 
-    response = client.get(f"api/tasks/{task_id}")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["id"] == task_id
-    assert data["title"] == "Test Task for Get"
-    assert data["description"] == "This is a test task for get"
-    assert data["due_date"] == "2024-12-31T23:59:59"
+    def test_create_task(self):
+        data = self.create_task()
+        assert data["title"] == "Test Task"
+        assert data["description"] == "This is a test task"
+        assert data["due_date"] == "2024-12-31"
 
+    def test_get_tasks(self):
+        self.create_task()
+        response = self.client.get("/tasks/")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 1
 
-def test_update_task():
-    # First, create a task to ensure there is one to update
-    create_response = client.post(
-        "api/tasks/",
-        json={
-            "title": "Test Task for Update",
-            "description": "This is a test task for update",
-            "due_date": "2024-12-31T23:59:59",
-        },
-    )
-    task_id = create_response.json()["id"]
+    def test_get_task(self):
+        task = self.create_task(
+            title="Test Task for Get", description="This is a test task for get"
+        )
+        task_id = task["id"]
+        response = self.client.get(f"/tasks/{task_id}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == task_id
+        assert data["title"] == "Test Task for Get"
+        assert data["description"] == "This is a test task for get"
+        assert data["due_date"] == "2024-12-31"
 
-    response = client.put(
-        f"api/tasks/{task_id}",
-        json={
-            "title": "Updated Test Task",
-            "description": "This task has been updated",
-            "due_date": "2025-01-31T23:59:59",
-        },
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["id"] == task_id
-    assert data["title"] == "Updated Test Task"
-    assert data["description"] == "This task has been updated"
-    assert data["due_date"] == "2025-01-31T23:59:59"
+    def test_update_task(self):
+        task = self.create_task(
+            title="Test Task for Update", description="This is a test task for update"
+        )
+        task_id = task["id"]
+        response = self.client.put(
+            f"/tasks/{task_id}",
+            json={
+                "title": "Updated Test Task",
+                "description": "This task has been updated",
+                "due_date": "2025-01-31",
+            },
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == task_id
+        assert data["title"] == "Updated Test Task"
+        assert data["description"] == "This task has been updated"
+        assert data["due_date"] == "2025-01-31"
 
-def test_delete_task():
-    # First, create a task to ensure there is one to delete
-    create_response = client.post(
-        "api/tasks/",
-        json={
-            "title": "Test Task for Delete",
-            "description": "This is a test task for delete",
-            "due_date": "2024-12-31T23:59:59",
-        },
-    )
-    task_id = create_response.json()["id"]
+    def test_delete_task(self):
+        task = self.create_task(
+            title="Test Task for Delete", description="This is a test task for delete"
+        )
+        task_id = task["id"]
+        response = self.client.delete(f"/tasks/{task_id}")
+        assert response.status_code == 204
+        get_response = self.client.get(f"/tasks/{task_id}")
+        assert get_response.status_code == 404
 
-    response = client.delete(f"api/tasks/{task_id}")
-    assert response.status_code == 204
+    def test_get_nonexistent_task(self):
+        response = self.client.get("/tasks/9999")
+        assert response.status_code == 404
 
-    # Verify the task has been deleted
-    get_response = client.get(f"api/tasks/{task_id}")
-    assert get_response.status_code == 404
-    
-def test_get_nonexistent_task():
-    response = client.get("api/tasks/9999")  # Assuming 9999 is a non-existent ID
-    assert response.status_code == 404
-    
-    
-def test_update_nonexistent_task(): 
-    response = client.put(
-        "api/tasks/9999",  # Assuming 9999 is a non-existent ID
-        json={
-            "title": "Non-existent Task",
-            "description": "Trying to update a non-existent task",
-            "due_date": "2025-01-31T23:59:59",
-        },
-    )
-    assert response.status_code == 404
+    def test_update_nonexistent_task(self):
+        response = self.client.put(
+            "/tasks/9999",
+            json={
+                "title": "Non-existent Task",
+                "description": "Trying to update a non-existent task",
+                "due_date": "2025-01-31",
+            },
+        )
+        assert response.status_code == 404
