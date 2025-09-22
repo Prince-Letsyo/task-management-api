@@ -1,7 +1,15 @@
 from fastapi import FastAPI
 from .api.endpoints import task_router
 from .config import settings
+from .core import create_db_and_tables
+from contextlib import asynccontextmanager
 
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
 
 app = FastAPI(
     title="Task Management Api Project",
@@ -12,7 +20,10 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    lifespan=lifespan,
 )
+
+
 app.include_router(task_router, prefix="/tasks", tags=["tasks"])
 
 

@@ -1,6 +1,14 @@
 from pydantic import BaseModel, field_validator
 from typing import List, Optional
 from datetime import date
+from sqlmodel import Field, SQLModel
+
+class TaskModel(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[date] = None  # ISO 8601 date string, optional   
+
 
 
 class Task(BaseModel):

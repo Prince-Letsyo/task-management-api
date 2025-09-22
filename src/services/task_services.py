@@ -1,58 +1,59 @@
 from .. import models, schemas
 from pydantic import ValidationError
+from typing import Annotated
+from sqlmodel import Session, select
+from fastapi import Query
 
 
-class TaskService:
-    def get_task_by_id(self, task_id: int) -> schemas.Task | None:
-        for task in models.tasks:
-            if task.id == task_id:
-                return schemas.Task.model_validate(task)
+def get_task_by_id(task_id: int, session: Session) -> schemas.Task | None:
+    task = session.get(models.TaskModel, task_id)
+    if task:
+        return schemas.Task.model_validate(task)
+    return None
+
+
+def create_task(task_create: schemas.TaskCreate, session: Session) -> schemas.Task:
+    new_task = models.TaskModel.model_validate(task_create)
+    session.add(new_task)
+    session.commit()
+    session.refresh(new_task)
+    return schemas.Task.model_validate(new_task)
+
+
+def get_all_tasks(
+    session: Session,
+    offset: int = 0,
+    limit: Annotated[int, Query(le=100)] = 100,
+) -> list[schemas.Task]:
+    all_tasks = session.exec(select(models.TaskModel).offset(offset).limit(limit)).all()
+    return [schemas.Task.model_validate(task) for task in all_tasks]
+
+
+def update_task(
+    task_id: int, task_update: schemas.TaskUpdate, session: Session
+) -> schemas.Task | None:
+    new_task = session.get(models.TaskModel, task_id)
+    if not new_task:
         return None
+    task_data = task_update.model_dump(exclude_unset=True)
+    for key, value in task_data.items():
+        setattr(new_task, key, value)
+    session.add(new_task)
+    session.commit()
+    session.refresh(new_task)
+    return schemas.Task.model_validate(new_task)
 
-    def create_task(self, task_create: schemas.TaskCreate) -> schemas.Task | ValueError:
-        new_id = max(task.id for task in models.tasks) + 1 if models.tasks else 1
-        try:
-            new_task = models.Task(
-                id=new_id,
-                title=task_create.title,
-                description=task_create.description,
-                due_date=task_create.due_date,
-            )
-            models.tasks.append(new_task)
-            return schemas.Task.model_validate(new_task)
-        except ValidationError as e:
-            raise ValueError(f"Invalid date: {task_create.due_date} format")
 
-    def get_all_tasks(
-        self,
-    ) -> list[schemas.Task]:
-        return [schemas.Task.model_validate(task) for task in models.tasks]
+def partial_update_task(
+    task_id: int, task_update: schemas.TaskUpdate, session: Session
+) -> schemas.Task | None:
+    return update_task(task_id, task_update, session)
 
-    def update_task(
-        self, task_id: int, task_update: schemas.TaskUpdate
-    ) -> schemas.Task | ValueError | None:
-        for task in models.tasks:
-            if task.id == task_id:
-                try:
-                    if task_update.title is not None:
-                        task.title = task_update.title
-                    if task_update.description is not None:
-                        task.description = task_update.description
-                    if task_update.due_date is not None:
-                        task.due_date = task_update.due_date
-                    return schemas.Task.model_validate(task)
-                except ValidationError as e:
-                    raise ValueError(f"Invalid date: {task_update.due_date} format")
-        return None
 
-    def partial_update_task(
-        self, task_id: int, task_update: schemas.TaskUpdate
-    ) -> schemas.Task | None:
-        return self.update_task(task_id, task_update)
-
-    def delete_task(self, task_id: int) -> bool:
-        for i, task in enumerate(models.tasks):
-            if task.id == task_id:
-                del models.tasks[i]
-                return True
+def delete_task(task_id: int, session: Session) -> bool:
+    task = session.get(models.TaskModel, task_id)
+    if not task:
         return False
+    session.delete(task)
+    session.commit()
+    return True

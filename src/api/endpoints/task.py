@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from src.schemas import Task, TaskCreate, TaskError, TaskUpdate
-from src.services import TaskService
+from src.services import task_services
+from sqlmodel import Session
+from typing import Annotated
+from src.core import get_session
+from src.models import TaskModel
 
+from pydantic import ValidationError
 
 task_router = APIRouter()
-task_service = TaskService()
+# task_service = TaskService()
 
 
 @task_router.get(
@@ -22,8 +27,8 @@ task_service = TaskService()
         },
     },
 )
-def get_task_by_id(task_id: int, service: TaskService = Depends(lambda: task_service)):
-    task = service.get_task_by_id(task_id)
+def get_task_by_id(task_id: int, session: Annotated[Session, Depends(get_session)]):
+    task = task_services.get_task_by_id(task_id, session)
     if task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -40,28 +45,18 @@ def get_task_by_id(task_id: int, service: TaskService = Depends(lambda: task_ser
         status.HTTP_201_CREATED: {
             "model": Task,
             "description": "Item created successfully",
-        },
-        status.HTTP_400_BAD_REQUEST: {
-            "model": TaskError,
-            "description": "Invalid attribute format",
-        },
+        }
     },
 )
 def create_task(
-    task_create: TaskCreate, service: TaskService = Depends(lambda: task_service)
+    task_create: TaskCreate, session: Annotated[Session, Depends(get_session)]
 ):
-    task = service.create_task(task_create)
-    if task is ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=TaskError(error=f"Task with invalid date format").model_dump(),
-        )
-    return task
+    return task_services.create_task(task_create, session)
 
 
 @task_router.get("/", response_model=list[Task])
-def get_all_tasks(service: TaskService = Depends(lambda: task_service)):
-    return service.get_all_tasks()
+def get_all_tasks(session: Annotated[Session, Depends(get_session)]):
+    return task_services.get_all_tasks(session=session)
 
 
 @task_router.put(
@@ -85,18 +80,13 @@ def get_all_tasks(service: TaskService = Depends(lambda: task_service)):
 def update_task(
     task_id: int,
     task_update: TaskUpdate | TaskError,
-    service: TaskService = Depends(lambda: task_service),
+    session: Annotated[Session, Depends(get_session)],
 ):
-    updated_task = service.update_task(task_id, task_update)
+    updated_task = task_services.update_task(task_id, task_update, session=session)
     if updated_task is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
-        )
-    elif update_task is ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=TaskError(error=f"Task with invalid date format").model_dump(),
         )
     return updated_task
 
@@ -122,19 +112,11 @@ def update_task(
 def partial_update_task(
     task_id: int,
     task_update: TaskUpdate,
-    service: TaskService = Depends(lambda: task_service),
+    session: Annotated[Session, Depends(get_session)],
 ):
-    updated_task = service.partial_update_task(task_id, task_update)
-    if updated_task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
-        )
-    elif update_task is ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=TaskError(error=f"Task with invalid date format").model_dump(),
-        )
+    updated_task = task_services.partial_update_task(
+        task_id, task_update, session=session
+    )
     return updated_task
 
 
@@ -149,11 +131,13 @@ def partial_update_task(
     },
     response_model=None,
 )  # 204 No Content
-def delete_task(task_id: int, service: TaskService = Depends(lambda: task_service)):
-    success = service.delete_task(task_id)
+def delete_task(
+    task_id: int,
+    session: Annotated[Session, Depends(get_session)],
+):
+    success = task_services.delete_task(task_id, session=session)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=TaskError(error=f"Task with id {task_id} not found").model_dump(),
         )
-    return None

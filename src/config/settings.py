@@ -6,12 +6,11 @@ load_dotenv()  # ensures .env is loaded
 
 
 class Settings(BaseSettings):
-    database_url: str
     secret_key: str
     debug: bool = False
     version: str
 
-    model_config = ConfigDict(env_file="../../.env")
+    model_config = ConfigDict(env_file="///./.env")
 
 
 settings = Settings()

@@ -1,4 +1,4 @@
-from src.models import Task
+from src.models import Task, TaskModel
 import datetime
 import pytest
 
