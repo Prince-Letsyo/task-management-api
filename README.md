@@ -1,7 +1,7 @@
 # Task Management API
 
 A simple **FastAPI**-powered RESTful API for managing tasks.  
-Currently, tasks are stored **in-memory**, making this ideal for demos, learning, or as a starter template for production APIs.
+Currently, tasks are stored in a local **SQLite** database, making this ideal for demos, learning, or as a starter template for production APIs.
 
 ---
 
