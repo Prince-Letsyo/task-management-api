@@ -31,6 +31,7 @@ task-management-api/
 │   └── services/
 │       └── task_services.py   # Business logic for tasks
 ├── tests/                     # Unit & integration tests
+│   └── test_task.py           # test for tasks                    
 ├── .gitignore
 ├── .python-version
 ├── README.md
