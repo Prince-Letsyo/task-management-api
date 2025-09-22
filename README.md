@@ -30,8 +30,7 @@ task-management-api/
 │   │   └── task.py            # Pydantic schemas for validation
 │   └── services/
 │       └── task_services.py   # Business logic for tasks
-├── tests/                     # Unit & integration tests
-│   └── test_task.py           # test for tasks                    
+├── tests/                     # Unit & integration tests                   
 ├── .gitignore
 ├── .python-version
 ├── README.md
@@ -155,3 +154,5 @@ pytest
 ## 📜 License
 
 This project is licensed under the **MIT License**.
+
+
