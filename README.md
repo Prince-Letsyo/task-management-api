@@ -28,6 +28,8 @@ task-management-api/
 │   │   └── task.py            # Task domain model & in-memory storage
 │   ├── schemas/
 │   │   └── task.py            # Pydantic schemas for validation
+│   ├── core/
+│   │   └── database.py            # database connection and session management
 │   └── services/
 │       └── task_services.py   # Business logic for tasks
 ├── tests/                     # Unit & integration tests                   
