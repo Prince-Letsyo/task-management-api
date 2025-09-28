@@ -7,6 +7,7 @@ class TaskBase(BaseModel):
     title: str
     description: str | None = None
     due_date: Optional[date] = None  # ISO 8601 date string, optional
+    status: str = "pending" 
     model_config = ConfigDict(from_attributes=True)
 
     @field_validator("due_date", mode="before")
