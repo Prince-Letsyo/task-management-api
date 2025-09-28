@@ -1,19 +1,27 @@
-from fastapi import FastAPI
-from .api.endpoints import task_router
-from .config import settings
-from .core import create_db_and_tables
+import os
 from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from app.routers import task_router
+from app.db.db import engine, Base
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    create_db_and_tables()
+    if os.getenv("ENV_MODE", "dev") == "prod":
+        await init_db()
     yield
+
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
 
 app = FastAPI(
     title="Task Management Api Project",
-    version=settings.version,
+    version="1.0.0",
     description="A simple Task Management API built with FastAPI",
     contact={"name": "Prince Kumar", "email": "test@gm.com"},
     license_info={"name": "MIT License"},
@@ -24,7 +32,7 @@ app = FastAPI(
 )
 
 
-app.include_router(task_router, prefix="/tasks", tags=["tasks"])
+app.include_router(task_router)
 
 
 @app.get("/")
