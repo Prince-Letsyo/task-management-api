@@ -216,8 +216,7 @@ http://localhost:8000/api/v1
 | title       | string   | Yes      | Task title |
 | description | string   | No       | Task details |
 | status      | enum     | Yes      | `pending`, `in-progress`, `completed` |
-| created_at  | datetime | Auto     | Creation timestamp |
-| updated_at  | datetime | Auto     | Last update timestamp |
+
 
 ---
 
