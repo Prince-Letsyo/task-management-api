@@ -18,7 +18,7 @@ class BaseTaskRepository(ABC):
 
     @abstractmethod
     async def update_task(
-        self, task_id: int, task_update: TaskUpdate, exclude_unset: bool = False
+        self, task_id: int, task_update: TaskUpdate
     ) -> Optional[Task]:
         pass
 

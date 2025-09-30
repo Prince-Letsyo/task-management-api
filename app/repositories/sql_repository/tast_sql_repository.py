@@ -29,12 +29,14 @@ class TaskSQLRepository(BaseTaskRepository):
         return Task.model_validate(created_task)
 
     async def update_task(
-        self, task_id: int, task_update: TaskUpdate, exclude_unset: bool = False
+        self,
+        task_id: int,
+        task_update: TaskUpdate,
     ) -> Optional[Task]:
         result = await self.db.execute(
             update(TaskModel)
             .where(TaskModel.id == task_id)
-            .values(**task_update.model_dump(exclude_unset=exclude_unset))
+            .values(**task_update.model_dump(exclude_unset=True))
             .returning(TaskModel)
         )
         updated_task = result.scalar_one_or_none()
@@ -44,9 +46,9 @@ class TaskSQLRepository(BaseTaskRepository):
         return None
 
     async def partial_update_task(
-        self, task_id: int, task_update: TaskUpdate, exclude_unset: bool = False
+        self, task_id: int, task_update: TaskUpdate
     ) -> Optional[Task]:
-        return await self.update_task(task_id, task_update, exclude_unset=exclude_unset)
+        return await self.update_task(task_id, task_update)
 
     async def delete_task(self, task_id: int) -> bool:
         result = await self.db.execute(delete(TaskModel).where(TaskModel.id == task_id))
