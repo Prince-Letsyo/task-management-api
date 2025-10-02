@@ -1,49 +1,93 @@
-# 📌 Task Management API
+# Task Management API
 
-A simple **FastAPI-powered RESTful API** for managing tasks.  
-Currently, tasks are stored in a local **SQLite** database, making this ideal for demos, learning, or as a starter template for production APIs.
-
----
-
-## 🚀 Tech Stack
-
-- **Python** ≥ 3.13  
-- **FastAPI** — API framework  
-- **Pydantic** — request/response validation  
-- **SQLModel** — ORM + database interaction  
-- **SQLite** — default database (swap out for Postgres/MySQL in prod)  
-- **Uvicorn** — ASGI server  
-- **Pytest** — testing framework  
+A RESTful API built with **FastAPI** + **SQLModel** for managing tasks.  
+This project is intended as a starter or demo project; you can extend it with user authentication, multi‑tenant features, etc.
 
 ---
 
-## 📂 Project Structure
+## Table of Contents
+
+- [Features](#features)  
+- [Tech Stack](#tech-stack)  
+- [Directory Structure](#directory-structure)  
+- [Getting Started](#getting-started)  
+  - [Prerequisites](#prerequisites)  
+  - [Installation](#installation)  
+  - [Configuration](#configuration)  
+  - [Running the Server](#running-the-server)  
+- [API Reference](#api-reference)  
+  - [Base URL](#base-url)  
+  - [Endpoints](#endpoints)  
+- [Data Models](#data-models)  
+- [Testing](#testing)  
+- [Production / Deployment Notes](#production--deployment-notes)  
+- [Roadmap / Future Enhancements](#roadmap--future-enhancements)  
+- [License](#license)  
+
+---
+
+## Features
+
+- CRUD (Create, Read, Update, Delete) operations for tasks  
+- Input and output validation via Pydantic / SQLModel  
+- Auto-generated API documentation (Swagger / ReDoc)  
+- Lightweight — uses SQLite by default (suitable for development)  
+- Clean layered architecture for maintainability  
+
+---
+
+## Tech Stack
+
+- Python ≥ 3.13  
+- FastAPI  
+- SQLModel (combines Pydantic + SQLAlchemy)  
+- SQLite (default DB)  
+- Uvicorn (ASGI server)  
+- Pytest (for testing)  
+
+---
+
+## Directory Structure
+
+Here is your project’s layout:
 
 ```
 task-management-api/
-├── src/
-│   ├── core/              # Core configurations (DB, settings)
-│   ├── models/            # SQLModel models
-│   ├── repositories/      # Database access layer
-│   ├── services/          # Business logic
-│   ├── api/               # FastAPI routers & endpoints
-│   ├── schemas/           # Pydantic request/response schemas
-│   ├── main.py            # Application entry point
+├── app/
+│   ├── api/               # Routers / endpoint definitions  
+│   ├── core/              # Configuration, DB setup  
+│   ├── models/            # SQLModel models  
+│   ├── repositories/      # Data-access layer  
+│   ├── schemas/            # Pydantic / SQLModel request & response schemas  
+│   ├── services/          # Business logic / use-cases  
+│   ├── main.py             # FastAPI app entrypoint  
 │   └── __init__.py
-├── tests/                 # Test suite
-├── .env.dev               # Dev environment variables
-├── requirements.txt        # Dependencies
-├── pyproject.toml          # Poetry project file (if used)
-└── README.md
+├── tests/                  # Test suite  
+├── .env_dev                 # Sample / template environment file  
+├── database.db              # The SQLite database file (for dev)  
+├── test.db                  # Possibly test DB file  
+├── pyproject.toml / requirements.txt  # Dependency declarations  
+├── .gitignore  
+└── README.md  
 ```
+
+**Notes / Observations:**
+
+- The top‑level directory is `app/`, not `src/`.  
+- All your application logic (routers, models, services etc.) lives inside `app/`.  
+- You have a `database.db` file for dev, and a separate `test.db`.  
+- `.env_dev` is your sample environment variables file.  
+
+When writing documentation or instructions, refer to `app.main:app` rather than `src.main:app` when launching the server.
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
-- Python **3.13+**
-- Virtual environment (`venv`, `poetry`, or `pipenv`)
+
+- Python 3.13 or above  
+- Virtual environment tool (venv, pipenv, poetry, etc.)
 
 ### Installation
 
@@ -51,71 +95,73 @@ task-management-api/
 git clone https://github.com/Prince-Letsyo/task-management-api.git
 cd task-management-api
 
-# Create & activate virtual environment
+# Create & activate venv
 python -m venv venv
-source venv/bin/activate   # Linux/Mac
-venv\Scriptsctivate      # Windows
+source venv/bin/activate        # macOS / Linux
+# On Windows: venv\Scriptsctivate
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
+(If you use Poetry / pyproject.toml, you may use `poetry install` instead.)
+
 ### Configuration
 
-Copy `.env.dev` to `.env` and set required variables:
+1. Copy `.env_dev` to `.env`  
+2. Open `.env` and edit the following (or add more as needed):
 
-```ini
-DATABASE_URL=sqlite:///./tasks.db
-SECRET_KEY=super-secret-key
+```text
+DATABASE_URL=sqlite:///./database.db
+SECRET_KEY=your-very-strong-secret
 ```
+
+3. If you want to use another database (PostgreSQL, MySQL, etc.), change `DATABASE_URL` accordingly.
 
 ### Running the Server
 
+From project root:
+
 ```bash
-uvicorn src.main:app --reload
+uvicorn app.main:app --reload
 ```
 
-The API will be available at:  
-👉 [http://localhost:8000/docs](http://localhost:8000/docs) (Swagger UI)  
-👉 [http://localhost:8000/redoc](http://localhost:8000/redoc) (ReDoc UI)  
+Once running:
+
+- Swagger UI: `http://localhost:8000/docs`  
+- ReDoc: `http://localhost:8000/redoc`  
 
 ---
 
-## 🔑 Authentication
-
-Currently, no authentication is enforced.  
-*(You can extend with JWT / OAuth2 if required.)*
-
----
-
-## 📖 API Reference
+## API Reference
 
 ### Base URL
+
 ```
 http://localhost:8000/api/v1
 ```
 
 ### Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET    | `/tasks/` | List all tasks |
-| POST   | `/tasks/` | Create a new task |
-| GET    | `/tasks/{task_id}` | Retrieve a task |
-| PUT    | `/tasks/{task_id}` | Update a task |
-| DELETE | `/tasks/{task_id}` | Delete a task |
+| Method  | Path                | Description                  | Request Body / Query Params            | Response / Notes                     |
+|--------|---------------------|-------------------------------|----------------------------------------|--------------------------------------|
+| GET    | `/tasks/`            | List all tasks                | —                                      | 200 OK → list of task objects        |
+| POST   | `/tasks/`            | Create a new task             | JSON: title, description, status       | 201 Created → created task object    |
+| GET    | `/tasks/{task_id}`   | Retrieve task by ID           | Path param: `task_id`                  | 200 OK → task object or 404          |
+| PUT    | `/tasks/{task_id}`   | Update a task                 | JSON: title, description, status       | 200 OK → updated task object         |
+| DELETE | `/tasks/{task_id}`   | Delete a task                 | Path param: `task_id`                  | 204 No Content on success            |
 
----
+#### Example: Create Task
 
-### Create Task
+**Request**
 
-**Request**  
-`POST /tasks/`
+```
+POST /tasks/
+Content-Type: application/json
 
-```json
 {
-  "title": "Finish API docs",
-  "description": "Write documentation for the project",
+  "title": "Write documentation",
+  "description": "Draft and polish README",
   "status": "pending"
 }
 ```
@@ -125,129 +171,104 @@ http://localhost:8000/api/v1
 ```json
 {
   "id": 1,
-  "title": "Finish API docs",
-  "description": "Write documentation for the project",
-  "status": "pending",
-}
-```
-
----
-
-### List Tasks
-
-**Request**  
-`GET /tasks/`
-
-**Response (200 OK)**
-
-```json
-[
-  {
-    "id": 1,
-    "title": "Finish API docs",
-    "description": "Write documentation for the project",
-    "status": "pending"
-  }
-]
-```
-
----
-
-### Retrieve Task
-
-**Request**  
-`GET /tasks/1`
-
-**Response (200 OK)**
-
-```json
-{
-  "id": 1,
-  "title": "Finish API docs",
-  "description": "Write documentation for the project",
+  "title": "Write documentation",
+  "description": "Draft and polish README",
   "status": "pending"
 }
 ```
 
----
+#### Example: Update Task
 
-### Update Task
+```
+PUT /tasks/1
+Content-Type: application/json
 
-**Request**  
-`PUT /tasks/1`
-
-```json
 {
-  "title": "Finish API docs",
-  "description": "Complete with Markdown + PDF export",
+  "title": "Write docs",
+  "description": "Include full API reference",
   "status": "in-progress"
 }
 ```
 
-**Response (200 OK)**
+Response:
 
 ```json
 {
   "id": 1,
-  "title": "Finish API docs",
-  "description": "Complete with Markdown + PDF export",
-  "status": "in-progress",
+  "title": "Write docs",
+  "description": "Include full API reference",
+  "status": "in-progress"
 }
 ```
 
+#### Example: Delete Task
+
+```
+DELETE /tasks/1
+```
+
+Response: `204 No Content`
+
 ---
 
-### Delete Task
-
-**Request**  
-`DELETE /tasks/1`
-
-**Response (204 No Content)**
-
----
-
-## 🗂️ Data Models
+## Data Models
 
 ### Task
 
-| Field       | Type     | Required | Description |
-|-------------|----------|----------|-------------|
-| id          | int      | Yes      | Unique ID |
-| title       | string   | Yes      | Task title |
-| description | string   | No       | Task details |
-| status      | enum     | Yes      | `pending`, `in-progress`, `completed` |
+| Field        | Type       | Required | Description                          |
+|--------------|------------|----------|--------------------------------------|
+| `id`         | `int`      | Yes      | Auto-generated unique identifier     |
+| `title`      | `str`      | Yes      | Task title                           |
+| `description`| `str` / `None` | No    | Extra detail or notes                |
+| `status`     | `str` enum | Yes      | One of: `pending`, `in-progress`, `completed` |
 
+These models are defined in your `app/models/` and `app/schemas/` directories, using SQLModel (Pydantic + SQLAlchemy).  
 
 ---
 
-## 🧪 Testing
+## Testing
 
-Run the tests with:
+To run your tests:
 
 ```bash
 pytest
 ```
 
----
+You presumably have tests within `tests/` that cover creation, fetching, updating, deleting, and error cases (e.g. 404).  
 
-## 🚀 Deployment
-
-- Replace SQLite with Postgres/MySQL for production
-- Run database migrations (Alembic recommended)
-- Use `.env` for environment configs
-- Deploy with Docker, Gunicorn + Uvicorn, or on platforms like Render/Heroku
+If you want, you can integrate tests into CI (GitHub Actions, etc.).
 
 ---
 
-## 📌 Roadmap
+## Production / Deployment Notes
 
-- ✅ CRUD operations for tasks  
-- 🔲 User authentication & authorization  
-- 🔲 Task categorization & tags  
-- 🔲 Project-level grouping  
+- Replace SQLite with a production-grade DB (PostgreSQL, MySQL, etc.)  
+- Introduce **database migrations**, for example via **Alembic**  
+- Add **authentication / authorization** (JWT, OAuth2, etc.)  
+- Add **pagination**, **filtering**, **sorting** in list endpoints  
+- Add proper **logging**, **error handling**, **rate limiting**, **monitoring / metrics**  
+- Containerize with **Docker** or **docker-compose**  
+- Use an ASGI server configuration (e.g. Uvicorn + Gunicorn)  
+- Use environment-based config (dev, staging, prod)  
+- Secure and manage secrets (avoid committing `.env` with real secrets)  
+- Consider caching, background tasks, webhooks, etc., as your app grows  
 
 ---
 
-## 📄 License
+## Roadmap / Future Enhancements
+
+- ✅ Basic task CRUD (already implemented)  
+- User registration, login, multi-user support  
+- Tasks grouping (projects, tags, categories)  
+- Due dates, reminders, notifications  
+- Subtasks or task hierarchies  
+- Soft-delete / archiving  
+- Audit trails / history logs  
+- Webhooks / external integrations  
+- Search, full-text query support  
+
+---
+
+## License
 
 This project is licensed under the **MIT License**.
