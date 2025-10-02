@@ -6,7 +6,7 @@ from app.repositories import TaskSQLRepository, TaskInMemoryRepository
 from app.schemas import TaskCreate, TaskUpdate, Task
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture
 def in_memory_task_repository():
     return TaskInMemoryRepository()
 
