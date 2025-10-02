@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 from .repositories import TaskInMemoryRepository, TaskSQLRepository
 from app.repositories.base_repository import BaseTaskRepository
 from .services import TaskService
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.db import get_db
+from sqlmodel.ext.asyncio.session import AsyncSession
+from app.config.db import get_db
 
 
 load_dotenv()

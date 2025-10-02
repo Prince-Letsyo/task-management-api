@@ -1,24 +1,12 @@
 import pytest
-import os
-from dotenv import load_dotenv
-import pytest
+import pytest_asyncio
 from app.services.task_service import TaskService
-from app.db.db import get_db
-from app.repositories import TaskInMemoryRepository, TaskSQLRepository
-from app.schemas import TaskCreate, Task, TaskUpdate
-load_dotenv()
+from app.repositories import TaskSQLRepository
+from app.schemas import TaskCreate, TaskUpdate
 
-
-@pytest.fixture(scope="class")
-def task_service():
-    # # Instantiate the actual TaskService with a real or mock repository
-    env_mode = os.getenv("ENV_MODE", "dev")
-    if env_mode == "dev":
-        return TaskService(repository=TaskInMemoryRepository())
-    elif env_mode == "prod":
-        return TaskService(repository=TaskSQLRepository(get_db))
-    raise ValueError(f"Unsupported ENV_MODE: {env_mode}")
-
+@pytest_asyncio.fixture
+async def task_service(session):
+    return TaskService(repository=TaskSQLRepository(session))
 
 @pytest.mark.asyncio
 class TestTaskServiceAsync:
@@ -26,12 +14,13 @@ class TestTaskServiceAsync:
         task_data = TaskCreate(
             title="Async Service Test Task",
             description="This is a test task for async service",
-            due_date="2024-12-31",
+            status="pending",
         )
         new_task = await task_service.create_task(task_create=task_data)
         assert new_task.title == task_data.title
         assert new_task.description == task_data.description
-        assert new_task.due_date == task_data.due_date
+        assert new_task.status == task_data.status
+        assert new_task.id is not None
 
     async def test_get_all_tasks(self, task_service):
         tasks = await task_service.get_all_tasks()
@@ -42,23 +31,25 @@ class TestTaskServiceAsync:
         assert task is None or task.id == 1
 
     async def test_update_task(self, task_service):
+        # Create a task first to ensure it exists
+        task_data = TaskCreate(
+            title="Initial Task",
+            description="Initial description",
+            status="pending",
+        )
+        created_task = await task_service.create_task(task_create=task_data)
+        
         task_update_data = TaskUpdate(
             title="Updated Async Service Test Task",
             description="This is an updated async test task for service",
-            due_date="2025-01-31",
+            status="completed",
         )
         updated_task = await task_service.update_task(
-            task_id=1, task_update=task_update_data
+            task_id=created_task.id, task_update=task_update_data
         )
-        assert updated_task is None or updated_task.title == task_update_data.title
-        assert (
-            updated_task is None
-            or updated_task.description == task_update_data.description
-        )
-        assert (
-            updated_task is None
-            or updated_task.due_date == task_update_data.due_date
-        )
+        assert updated_task.title == task_update_data.title
+        assert updated_task.description == task_update_data.description
+        assert updated_task.status == task_update_data.status
 
     async def test_partial_update_task(self, task_service):
         partial_update_data = TaskUpdate(
@@ -84,12 +75,8 @@ class TestTaskServiceAsync:
             description="Testing create and get by id",
             due_date="2024-11-30",
         )
-        print(f"Task length before creation: {len(await task_service.get_all_tasks())}")
         new_task = await task_service.create_task(task_create=task_data)
-        print(f"Created task: {new_task}")
-        print(f"Task length after creation: {len(await task_service.get_all_tasks())}")
         fetched_task = await task_service.get_task_by_id(task_id=new_task.id)
-        print(f"Fetched task: {fetched_task}")
         assert fetched_task is not None
         assert fetched_task.title == task_data.title
 

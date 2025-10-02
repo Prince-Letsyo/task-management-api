@@ -2,7 +2,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.routers import task_router
-from app.db.db import engine, Base
+from app.config.db import init_db
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,10 +13,6 @@ async def lifespan(app: FastAPI):
         await init_db()
     yield
 
-
-async def init_db():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
 
 app = FastAPI(

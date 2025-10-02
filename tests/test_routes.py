@@ -1,25 +1,27 @@
 import pytest
-from app import app
+from app.main import app
+from app.config.db import AsyncSessionLocal
 from fastapi.testclient import TestClient
 
-
 @pytest.fixture
-def client():
+def client(session):
+    # Override the dependency for tests
+    def override_get_session():
+        yield session
+    app.dependency_overrides[AsyncSessionLocal] = override_get_session
     with TestClient(app) as c:
         yield c
-
 
 @pytest.fixture
 def created_task(client):
     task_data = {
         "title": "Test Task",
         "description": "This is a test task",
-        "due_date": "2024-12-31",
+        "status": "pending",
     }
     response = client.post("/tasks/", json=task_data)
     assert response.status_code == 201
     return response.json()
-
 
 class TestTaskRoutes:
     def setup_method(self):
@@ -29,14 +31,16 @@ class TestTaskRoutes:
         task_data = {
             "title": "Test Task",
             "description": "This is a test task",
-            "due_date": "2024-12-31",
+            "status": "pending",
         }
         response = client.post("/tasks/", json=task_data)
         assert response.status_code == 201
         data = response.json()
+        print(f"Created task data: {data}")
         assert data["title"] == task_data["title"]
         assert data["description"] == task_data["description"]
-        assert data["due_date"] == task_data["due_date"]
+        assert data["status"] == task_data["status"]
+        assert "id" in data
 
     def test_get_tasks(self, client, created_task):
         response = client.get("/tasks/")
@@ -46,34 +50,27 @@ class TestTaskRoutes:
         assert len(data) >= 1  # At least one task should exist from previous test
         assert "title" in data[0]
         assert "description" in data[0] or data[0]["description"] is None
-        assert (
-            "due_date" in data[0]
-            or data[0]["due_date"] is None
-            or data[0]["due_date"] is not None
-        )  # due_date can be null or a valid date string
+        assert "status" in data[0]
         assert "id" in data[0]
 
     def test_get_task(self, client, created_task):
         task_id = created_task["id"]
-        print(f"Testing get_task with task_id: {task_id}")
         response = client.get(f"/tasks/{task_id}")
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == task_id
         assert "title" in data
         assert "description" in data or data["description"] is None
-        assert (
-            "due_date" in data
-            or data["due_date"] is None
-            or data["due_date"] is not None
-        )  # due_date can be null or a valid date string
+        assert "status" in data
 
     def test_update_task(self, client, created_task):
+        print(f"Created task for update test: {created_task}")
+        print(f"Task ID for update test: {created_task['id']}")
         task_id = created_task["id"]
         update_data = {
             "title": "Updated Task Title",
             "description": "Updated description",
-            "due_date": "2024-11-30",
+            "status": "completed",
         }
         response = client.put(f"/tasks/{task_id}", json=update_data)
         assert response.status_code == 200
@@ -81,13 +78,12 @@ class TestTaskRoutes:
         assert data["id"] == task_id
         assert data["title"] == update_data["title"]
         assert data["description"] == update_data["description"]
-        assert data["due_date"] == update_data["due_date"]
+        assert data["status"] == update_data["status"]
 
     def test_delete_task(self, client, created_task):
         task_id = created_task["id"]
         response = client.delete(f"/tasks/{task_id}")
         assert response.status_code == 204
-
         # Verify the task is deleted
         response = client.get(f"/tasks/{task_id}")
         assert response.status_code == 404
@@ -100,11 +96,9 @@ class TestTaskRoutes:
         update_data = {
             "title": "Nonexistent Task",
             "description": "This task does not exist",
-            "due_date": "2024-10-10",
+            "status": "completed",
         }
-        response = client.put(
-            "/tasks/9999", json=update_data
-        )  # Assuming 9999 does not exist
+        response = client.put("/tasks/9999", json=update_data)  # Assuming 9999 does not exist
         assert response.status_code == 404
 
     def test_delete_nonexistent_task(self, client):
@@ -126,26 +120,22 @@ class TestTaskRoutes:
         print(f"Created task for partial update test: {created_task}")
         print(f"Response data after partial update: {data}")
         assert data["title"] == created_task["title"]
-        assert data["due_date"] == created_task["due_date"]
+        assert data["status"] == created_task["status"]
 
     def test_partial_update_nonexistent_task(self, client):
         partial_update_data = {
             "description": "Trying to update a nonexistent task",
         }
-        response = client.patch(
-            "/tasks/9999", json=partial_update_data
-        )  # Assuming 9999 does not exist
+        response = client.patch("/tasks/9999", json=partial_update_data)  # Assuming 9999 does not exist
         assert response.status_code == 404
         assert response.json() == {"detail": "Task with id 9999 not found"}
 
     def test_create_task_missing_title(self, client):
         task_data = {
             "description": "This task has no title",
-            "due_date": "2024-12-31",
+            "status": "in-progress",
         }
         response = client.post("/tasks/", json=task_data)
         assert response.status_code == 422  # Unprocessable Entity
         data = response.json()
         assert data["detail"][0]["loc"] == ["body", "title"]
-
-    
