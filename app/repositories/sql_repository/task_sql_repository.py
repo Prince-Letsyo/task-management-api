@@ -2,7 +2,7 @@ from typing import List, Optional
 from app.schemas import TaskCreate, Task, TaskUpdate
 from app.repositories.base_repository import BaseTaskRepository
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, update, delete, insert
+from sqlmodel import delete
 
 
 class TaskSQLRepository(BaseTaskRepository):
@@ -45,6 +45,11 @@ class TaskSQLRepository(BaseTaskRepository):
         return await self.update_task(task_id, task_update)
 
     async def delete_task(self, task_id: int) -> bool:
-        result = await self.db.exec(delete(Task).where(Task.id == task_id))
-        await self.db.commit()
-        return result.rowcount > 0
+        try:
+            result = await self.db.exec(delete(Task).where(Task.id == task_id))
+            await self.db.commit()
+            if result.rowcount > 0:
+                return True
+            return False
+        except Exception:
+            return False

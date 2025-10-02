@@ -3,6 +3,7 @@ from app.main import app
 from app.config.db import AsyncSessionLocal
 from fastapi.testclient import TestClient
 
+
 @pytest.fixture
 def client(session):
     # Override the dependency for tests
@@ -36,7 +37,6 @@ class TestTaskRoutes:
         response = client.post("/tasks/", json=task_data)
         assert response.status_code == 201
         data = response.json()
-        print(f"Created task data: {data}")
         assert data["title"] == task_data["title"]
         assert data["description"] == task_data["description"]
         assert data["status"] == task_data["status"]
@@ -64,8 +64,6 @@ class TestTaskRoutes:
         assert "status" in data
 
     def test_update_task(self, client, created_task):
-        print(f"Created task for update test: {created_task}")
-        print(f"Task ID for update test: {created_task['id']}")
         task_id = created_task["id"]
         update_data = {
             "title": "Updated Task Title",

@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from sqlmodel import SQLModel
 from app.config.db import AsyncSessionLocal
 from sqlalchemy.ext.asyncio import create_async_engine
+from unittest.mock import AsyncMock, Mock
+from sqlalchemy.ext.asyncio import AsyncSession
 
 load_dotenv()
 
@@ -36,3 +38,14 @@ async def session():
         # Rollback any uncommitted changes to ensure clean state
         await session.rollback()
         await session.close()
+
+
+@pytest_asyncio.fixture
+async def mock_session():
+    session = Mock(spec=AsyncSession)
+    session.add = Mock()
+    session.commit = AsyncMock()
+    session.refresh = AsyncMock()
+    session.get = AsyncMock()
+    session.exec = AsyncMock()
+    return session

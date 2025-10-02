@@ -2,6 +2,8 @@
 from sqlmodel import SQLModel, Field, Enum
 from typing import Optional
 import enum
+from pydantic import ConfigDict
+
 
 
 # Define the Enum for task status
@@ -16,8 +18,7 @@ class TaskBase(SQLModel):
     description: Optional[str] = Field(default=None, nullable=True)
     status: TaskStatus = Field(default=TaskStatus.PENDING, sa_type=Enum(TaskStatus), nullable=False)
 
-    class Config:
-        from_attributes = True  # Equivalent to Pydantic's from_attributes=True
+    model_config = ConfigDict(from_attributes=True)
 
 # Model for creating tasks (used in POST requests)
 class TaskCreate(TaskBase):
