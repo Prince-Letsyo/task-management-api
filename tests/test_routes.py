@@ -114,9 +114,6 @@ class TestTaskRoutes:
         data = response.json()
         assert data["id"] == task_id
         assert data["description"] == partial_update_data["description"]
-        # Ensure other fields remain unchanged
-        print(f"Created task for partial update test: {created_task}")
-        print(f"Response data after partial update: {data}")
         assert data["title"] == created_task["title"]
         assert data["status"] == created_task["status"]
 
