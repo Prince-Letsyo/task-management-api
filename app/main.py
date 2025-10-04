@@ -1,18 +1,17 @@
-import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from app.routers import task_router
+from fastapi import FastAPI, Request
 from app.config.db import init_db
-from dotenv import load_dotenv
+from app.routers import task_router
+from app.services import decode_access_token
+from app.utils import ENV_MODE
+from app.routers import auth_router
 
-load_dotenv()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if os.getenv("ENV_MODE", "dev") == "prod":
+    if ENV_MODE == "prod":
         await init_db()
     yield
-
 
 
 app = FastAPI(
@@ -28,7 +27,20 @@ app = FastAPI(
 )
 
 
+@app.middleware("http")
+async def jwt_decoder(request: Request, call_next):
+    token = request.headers.get("Authorization")
+    if token and token.startswith("Bearer "):
+        payload = decode_access_token(token.split(" ")[1])
+        print(f"Payload: {payload}")
+        request.state.user = payload.get("sub")
+    else:
+        request.state.user = None
+    return await call_next(request)
+
+
 app.include_router(task_router)
+app.include_router(auth_router)
 
 
 @app.get("/")

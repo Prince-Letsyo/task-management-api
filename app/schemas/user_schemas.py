@@ -1,0 +1,33 @@
+from sqlmodel import SQLModel, Field
+from typing import Optional
+from pydantic import ConfigDict
+
+
+
+class UserBase(SQLModel):
+    username: str = Field(index=True, nullable=False,  unique=True)
+    email: str = Field(index=True, nullable=False)
+
+    model_config = ConfigDict(from_attributes=True)
+    
+    
+class UserCreate(UserBase):
+    password: str = Field(nullable=False)
+    pass
+
+
+class UserModel(UserBase, table=True):
+    __tablename__ = "users"
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    hashed_password: str = Field(nullable=False)        
+    
+    
+class UserUpdate(SQLModel):
+    username: Optional[str] = Field(default=None, nullable=True)
+    email: Optional[str] = Field(default=None, nullable=True)
+    password: Optional[str] = Field(default=None, nullable=True)    
+
+class UserError(SQLModel):
+    error: str
+
+

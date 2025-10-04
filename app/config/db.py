@@ -1,15 +1,10 @@
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from typing import AsyncGenerator
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlmodel.ext.asyncio.session import AsyncSession
+from app.utils import SQLALCHEMY_DATABASE_URL
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-# Default to SQLite; override with DATABASE_URL for production (e.g., PostgreSQL)
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./database.db")
 
 # Create async engine
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=False)

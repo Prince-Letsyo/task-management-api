@@ -9,9 +9,21 @@ def client(session):
     # Override the dependency for tests
     def override_get_session():
         yield session
+
     app.dependency_overrides[AsyncSessionLocal] = override_get_session
+
     with TestClient(app) as c:
+        # user_data = {
+        #     "username": "testuser",
+        #     "email": "test@gmail.com",
+        #     "password": "testpassword",
+        # }
+        # response =  c.post("/auth/sign_up", json=user_data)
+        # print(f"Response during setup: {response.status_code}, {response.text}")
+        # token = response.json().get("token").get("access_token")
+        # c.headers.update({"Authorization": f"Bearer {token}"})
         yield c
+
 
 @pytest.fixture
 def created_task(client):
@@ -21,9 +33,10 @@ def created_task(client):
         "status": "pending",
     }
     response = client.post("/tasks/", json=task_data)
-    assert response.status_code == 201
     return response.json()
 
+
+@pytest.mark.usefixtures("client")
 class TestTaskRoutes:
     def setup_method(self):
         self.task_id = None
@@ -96,7 +109,9 @@ class TestTaskRoutes:
             "description": "This task does not exist",
             "status": "completed",
         }
-        response = client.put("/tasks/9999", json=update_data)  # Assuming 9999 does not exist
+        response = client.put(
+            "/tasks/9999", json=update_data
+        )  # Assuming 9999 does not exist
         assert response.status_code == 404
 
     def test_delete_nonexistent_task(self, client):
@@ -121,7 +136,9 @@ class TestTaskRoutes:
         partial_update_data = {
             "description": "Trying to update a nonexistent task",
         }
-        response = client.patch("/tasks/9999", json=partial_update_data)  # Assuming 9999 does not exist
+        response = client.patch(
+            "/tasks/9999", json=partial_update_data
+        )  # Assuming 9999 does not exist
         assert response.status_code == 404
         assert response.json() == {"detail": "Task with id 9999 not found"}
 

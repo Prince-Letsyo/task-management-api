@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from typing import List
 from app.schemas import TaskCreate, Task, TaskUpdate
 from app.services import TaskService
@@ -8,7 +8,20 @@ from app.dependencies import get_task_service
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.get("/", status_code=status.HTTP_200_OK, response_model=List[Task])
+def require_auth(request: Request):
+    if not request.state.user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing JWT"
+        )
+    return request.state.user
+
+
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=List[Task],
+    # dependencies=[Depends(require_auth)],
+)
 async def read_tasks(
     task_service: TaskService = Depends(get_task_service),
 ):
