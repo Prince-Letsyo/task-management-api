@@ -32,15 +32,18 @@ async def jwt_decoder(request: Request, call_next):
     token = request.headers.get("Authorization")
     if token and token.startswith("Bearer "):
         payload = decode_access_token(token.split(" ")[1])
-        print(f"Payload: {payload}")
-        request.state.user = payload.get("sub")
+        request.state.user = {
+            "username": payload.get("username"),
+            "email": payload.get("email"),
+        }
+        payload.get("sub")
     else:
         request.state.user = None
     return await call_next(request)
 
 
-app.include_router(task_router)
 app.include_router(auth_router)
+app.include_router(task_router)
 
 
 @app.get("/")

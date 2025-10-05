@@ -20,7 +20,8 @@ class AuthSQLRepository(BaseAuthRepository):
             await self.db.commit()
             await self.db.refresh(user)
             return user
-        except Exception:
+        except Exception as e:
+            print(str(e))
             await self.db.rollback()
             return None
 

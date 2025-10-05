@@ -1,27 +1,27 @@
 import pytest
+import unittest
 from app.main import app
 from app.config.db import AsyncSessionLocal
 from fastapi.testclient import TestClient
 
 
 @pytest.fixture
-def client(session):
-    # Override the dependency for tests
-    def override_get_session():
-        yield session
+def client(session, mock_user):
 
-    app.dependency_overrides[AsyncSessionLocal] = override_get_session
+    app.dependency_overrides[AsyncSessionLocal] = session
 
     with TestClient(app) as c:
-        # user_data = {
-        #     "username": "testuser",
-        #     "email": "test@gmail.com",
-        #     "password": "testpassword",
-        # }
-        # response =  c.post("/auth/sign_up", json=user_data)
-        # print(f"Response during setup: {response.status_code}, {response.text}")
-        # token = response.json().get("token").get("access_token")
-        # c.headers.update({"Authorization": f"Bearer {token}"})
+        sign_up_user = mock_user
+        user_data = {
+            "username": sign_up_user["username"],
+            "email": sign_up_user["email"],
+            "password": sign_up_user["password"],
+        }
+        response = c.post("/auth/sign_up", json=user_data)
+        data = response.json()
+        c.headers["Authorization"] = (
+            f"{data["token"]["token_type"]} {data["token"]["access_token"]}"
+        )
         yield c
 
 
@@ -38,9 +38,6 @@ def created_task(client):
 
 @pytest.mark.usefixtures("client")
 class TestTaskRoutes:
-    def setup_method(self):
-        self.task_id = None
-
     def test_create_task(self, client):
         task_data = {
             "title": "Test Task",
@@ -55,7 +52,15 @@ class TestTaskRoutes:
         assert data["status"] == task_data["status"]
         assert "id" in data
 
-    def test_get_tasks(self, client, created_task):
+    def test_get_tasks(self, client, mock_user, created_task):
+        sign_up_user = mock_user
+        user_data = {
+            "username": sign_up_user["username"],
+            "email": sign_up_user["email"],
+            "password": sign_up_user["password"],
+        }
+        response = client.post("/auth/sign_up", json=user_data)
+        data = response.json()
         response = client.get("/tasks/")
         assert response.status_code == 200
         data = response.json()

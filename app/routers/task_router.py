@@ -20,7 +20,7 @@ def require_auth(request: Request):
     "/",
     status_code=status.HTTP_200_OK,
     response_model=List[Task],
-    # dependencies=[Depends(require_auth)],
+    dependencies=[Depends(require_auth)],
 )
 async def read_tasks(
     task_service: TaskService = Depends(get_task_service),
