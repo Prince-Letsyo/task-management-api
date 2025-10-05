@@ -29,9 +29,10 @@ def get_auth_repository(db: AsyncSession = Depends(get_db)) -> BaseAuthRepositor
 
 
 def get_task_service(
-    repository: BaseTaskRepository = Depends(get_task_repository),
+    task_repository: BaseTaskRepository = Depends(get_task_repository),
+    auth_repository: BaseAuthRepository = Depends(get_auth_repository),
 ) -> TaskService:
-    return TaskService(repository)
+    return TaskService(auth_repository=auth_repository, task_repository=task_repository)
 
 
 def get_auth_service(

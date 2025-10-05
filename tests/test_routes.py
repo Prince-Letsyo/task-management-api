@@ -1,5 +1,4 @@
 import pytest
-import unittest
 from app.main import app
 from app.config.db import AsyncSessionLocal
 from fastapi.testclient import TestClient

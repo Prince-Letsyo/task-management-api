@@ -24,10 +24,6 @@ class TaskBase(SQLModel):
 class TaskCreate(TaskBase):
     pass
 
-# Model for database and full task response (used in GET/POST responses)
-class TaskModel(TaskBase, table=True):
-    __tablename__ = "tasks"
-    id: Optional[int] = Field(default=None, primary_key=True, index=True)
 
 # Model for updating tasks (used in PUT/PATCH requests)
 class TaskUpdate(TaskBase):

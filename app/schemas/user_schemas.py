@@ -15,12 +15,6 @@ class UserCreate(UserBase):
     pass
 
 
-class UserModel(UserBase, table=True):
-    __tablename__ = "users"
-    id: Optional[int] = Field(default=None, primary_key=True, index=True)
-    password: str = Field(nullable=False)
-
-
 class UserUpdate(SQLModel):
     username: Optional[str] = Field(default=None, nullable=True)
     email: Optional[str] = Field(default=None, nullable=True)

@@ -1,6 +1,7 @@
-from .user_schemas import UserCreate, UserModel as User, UserUpdate, UserError,  UserBase
-from .task_schemas import TaskCreate, TaskModel as Task, TaskUpdate, TaskError
+from .user_schemas import UserCreate, UserUpdate, UserError, UserBase
+from .task_schemas import TaskCreate, TaskUpdate, TaskError
 from .token_schemas import TokenModel as Token, TokenError, TokenData
+from .user_task_relation_schemas import UserModel as User, TaskModel as Task
 
 __all__ = [
     "TaskCreate",

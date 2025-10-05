@@ -41,7 +41,18 @@ async def session():
 
 
 @pytest_asyncio.fixture
-async def mock_session():
+async def task_mock_session():
+    session = Mock(spec=AsyncSession)
+    session.add = Mock()
+    session.commit = AsyncMock()
+    session.refresh = AsyncMock()
+    session.get = AsyncMock()
+    session.exec = AsyncMock()
+    return session
+
+
+@pytest_asyncio.fixture
+async def auth_mock_session():
     session = Mock(spec=AsyncSession)
     session.add = Mock()
     session.commit = AsyncMock()

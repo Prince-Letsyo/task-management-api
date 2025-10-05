@@ -36,7 +36,6 @@ async def jwt_decoder(request: Request, call_next):
             "username": payload.get("username"),
             "email": payload.get("email"),
         }
-        payload.get("sub")
     else:
         request.state.user = None
     return await call_next(request)
