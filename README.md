@@ -7,22 +7,28 @@ This project is intended as a starter or demo project; you can extend it with us
 
 ## Table of Contents
 
-- [Features](#features)  
-- [Tech Stack](#tech-stack)  
-- [Directory Structure](#directory-structure)  
-- [Getting Started](#getting-started)  
-  - [Prerequisites](#prerequisites)  
-  - [Installation](#installation)  
-  - [Configuration](#configuration)  
-  - [Running the Server](#running-the-server)  
-- [API Reference](#api-reference)  
-  - [Base URL](#base-url)  
-  - [Endpoints](#endpoints)  
-- [Data Models](#data-models)  
-- [Testing](#testing)  
-- [Production / Deployment Notes](#production--deployment-notes)  
-- [Roadmap / Future Enhancements](#roadmap--future-enhancements)  
-- [License](#license)  
+- [Task Management API](#task-management-api)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Tech Stack](#tech-stack)
+  - [Directory Structure](#directory-structure)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+    - [Running the Server](#running-the-server)
+  - [API Reference](#api-reference)
+    - [Base URL](#base-url)
+    - [Endpoints](#endpoints)
+      - [Example: Create Task](#example-create-task)
+      - [Example: Update Task](#example-update-task)
+      - [Example: Delete Task](#example-delete-task)
+  - [Data Models](#data-models)
+    - [Task](#task)
+  - [Testing](#testing)
+  - [Production / Deployment Notes](#production--deployment-notes)
+  - [Roadmap / Future Enhancements](#roadmap--future-enhancements)
+  - [License](#license)
 
 ---
 
@@ -258,7 +264,7 @@ If you want, you can integrate tests into CI (GitHub Actions, etc.).
 ## Roadmap / Future Enhancements
 
 - ✅ Basic task CRUD (already implemented)  
-- User registration, login, multi-user support  
+- ✅ User registration, login, multi-user support  
 - Tasks grouping (projects, tags, categories)  
 - Due dates, reminders, notifications  
 - Subtasks or task hierarchies  
