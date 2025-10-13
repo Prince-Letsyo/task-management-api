@@ -1,26 +1,23 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional, List
-from pydantic import ConfigDict
+from pydantic import ConfigDict, EmailStr
 
 
 class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False, unique=True)
-    email: str = Field(index=True, nullable=False)
+    email: EmailStr = Field(index=True, nullable=False)
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(UserBase):
-    password: str = Field(nullable=False)
+    password: str = Field(nullable=False, min_length=8)
     pass
 
 
-class UserUpdate(SQLModel):
-    username: Optional[str] = Field(default=None, nullable=True)
-    email: Optional[str] = Field(default=None, nullable=True)
-    password: Optional[str] = Field(default=None, nullable=True)
+class UserUpdate(UserCreate):
+    pass
 
 
 class UserError(SQLModel):
     error: str
-

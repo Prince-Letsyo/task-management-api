@@ -1,13 +1,12 @@
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.utils import SQLALCHEMY_DATABASE_URL
+from app.config import config
 
 
 # Create async engine
-engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=False)
+engine = create_async_engine(config.database.get("url"), echo=False)
 
 # Create async session factory
 AsyncSessionLocal = async_sessionmaker(
@@ -16,13 +15,6 @@ AsyncSessionLocal = async_sessionmaker(
     autocommit=False,
     autoflush=False,
 )
-
-
-# Async dependency for FastAPI
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with AsyncSessionLocal() as session:
-        yield session
-        await session.close()
 
 
 # Optional: Create tables (run once during app startup)

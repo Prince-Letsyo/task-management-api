@@ -43,9 +43,9 @@ class BaseAuthRepository(ABC):
         pass
 
     @abstractmethod
-    async def authenticate_user(self, username: str, password: str) -> User | None:
-            pass
+    async def authenticate_user(self, username: str, password: str) -> User:
+        pass
 
     @abstractmethod
-    async def get_user_by_username(self, username: str) -> User | None:
+    async def get_user_by_username(self, username: str) -> User:
         pass

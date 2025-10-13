@@ -21,7 +21,6 @@ def in_memory_auth_repository():
     return AuthInMemoryRepository()
 
 
-
 @pytest.mark.asyncio
 async def create_user(in_memory_auth_repository, mock_user) -> User:
     mocked_user = mock_user.copy()
@@ -30,7 +29,7 @@ async def create_user(in_memory_auth_repository, mock_user) -> User:
         email=mocked_user["email"],
         password=mocked_user["password"],
     )
-    return  await in_memory_auth_repository.create_user(user_create=user_create)
+    return await in_memory_auth_repository.create_user(user_create=user_create)
 
 
 @pytest.mark.asyncio

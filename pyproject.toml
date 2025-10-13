@@ -12,6 +12,7 @@ dependencies = [
     "faker>=37.8.0",
     "fastapi>=0.117.1",
     "httpx>=0.28.1",
+    "loguru>=0.7.3",
     "pwdlib[argon2]>=0.2.1",
     "pydantic-settings>=2.10.1",
     "pytest>=8.4.2",

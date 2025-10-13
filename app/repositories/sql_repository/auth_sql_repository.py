@@ -1,6 +1,12 @@
-from app.schemas import User, UserCreate
 from sqlmodel.ext.asyncio.session import AsyncSession
-from pwdlib import PasswordHash
+from sqlalchemy.exc import (
+    IntegrityError,
+    OperationalError,
+    DataError,
+    ProgrammingError,
+    SQLAlchemyError,
+)
+from app.schemas import User, UserCreate
 from app.utils import get_password_hash, verify_password
 from app.repositories.base_repository import BaseAuthRepository
 
@@ -15,17 +21,16 @@ class AuthSQLRepository(BaseAuthRepository):
             email=user_create.email,
             password=get_password_hash(user_create.password),
         )
-        self.db.add(user)
         try:
+            self.db.add(user)
             await self.db.commit()
             await self.db.refresh(user)
             return user
         except Exception as e:
-            print(str(e))
             await self.db.rollback()
             return None
 
-    async def authenticate_user(self, username: str, password: str) -> User | None:
+    async def authenticate_user(self, username: str, password: str) -> User:
         user = await self.get_user_by_username(username)
         if not user:
             return None
@@ -33,7 +38,7 @@ class AuthSQLRepository(BaseAuthRepository):
             return None
         return user
 
-    async def get_user_by_username(self, username: str) -> User | None:
+    async def get_user_by_username(self, username: str) -> User:
         query = await self.db.exec(
             User.__table__.select().where(User.username == username)
         )

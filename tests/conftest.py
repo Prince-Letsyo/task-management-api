@@ -6,17 +6,13 @@ from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from unittest.mock import AsyncMock, Mock
 
-from app.config.db import AsyncSessionLocal
+from app.db import AsyncSessionLocal
+from app.config import config
 
 load_dotenv()
 
-# Default to SQLite; override with DATABASE_URL for production (e.g., PostgreSQL)
-SQLALCHEMY_TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", "sqlite+aiosqlite:///./test.db"
-)
-
 # Create async engine
-test_engine = create_async_engine(SQLALCHEMY_TEST_DATABASE_URL, echo=False)
+test_engine = create_async_engine(config.database.get("url"), echo=False)
 
 AsyncSessionLocal.configure(bind=test_engine)
 

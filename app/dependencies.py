@@ -1,41 +1,64 @@
-from fastapi import Depends
-from .repositories import (
-    TaskInMemoryRepository,
+from sqlmodel.ext.asyncio.session import AsyncSession
+from app.repositories import (
     TaskSQLRepository,
     AuthSQLRepository,
-    AuthInMemoryRepository,
 )
 from app.repositories.base_repository import BaseTaskRepository, BaseAuthRepository
-from .services import TaskService, AuthService
-from sqlmodel.ext.asyncio.session import AsyncSession
-from app.config.db import get_db
-from app.utils import ENV_MODE
+from app.services import TaskService, AuthService
+
+# from app.db import get_db
+from typing import Optional
 
 
-def get_task_repository(db: AsyncSession = Depends(get_db)) -> BaseTaskRepository:
-    if ENV_MODE == "dev":
-        return TaskInMemoryRepository()
-    elif ENV_MODE == "prod":
-        return TaskSQLRepository(db)
-    raise ValueError(f"Unsupported ENV_MODE: {ENV_MODE}")
+class DependencyContainer:
+    _instance = None
+    task_repository: Optional[BaseTaskRepository] = None
+    auth_repository: Optional[BaseAuthRepository] = None
+    task_service: Optional[TaskService] = None
+    auth_service: Optional[AuthService] = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    async def initialize(self, db: Optional[AsyncSession] = None):
+        if self.task_repository is None or self.auth_repository is None:
+            # Initialize repositories based on environment
+            if db is None:
+                raise ValueError("Database session required for SQL repositories")
+            self.task_repository = TaskSQLRepository(db)
+            self.auth_repository = AuthSQLRepository(db)
+
+            # Initialize services with singleton repositories
+            self.task_service = TaskService(
+                auth_repository=self.auth_repository,
+                task_repository=self.task_repository,
+            )
+            self.auth_service = AuthService(repository=self.auth_repository)
+
+    async def cleanup(self):
+        self.task_repository = None
+        self.auth_repository = None
+        self.task_service = None
+        self.auth_service = None
 
 
-def get_auth_repository(db: AsyncSession = Depends(get_db)) -> BaseAuthRepository:
-    if ENV_MODE == "dev":
-        return AuthInMemoryRepository()
-    elif ENV_MODE == "prod":
-        return AuthSQLRepository(db)
-    raise ValueError(f"Unsupported ENV_MODE: {ENV_MODE}")
+# Global container instance
+dependency_container = DependencyContainer()
 
 
-def get_task_service(
-    task_repository: BaseTaskRepository = Depends(get_task_repository),
-    auth_repository: BaseAuthRepository = Depends(get_auth_repository),
-) -> TaskService:
-    return TaskService(auth_repository=auth_repository, task_repository=task_repository)
+def get_task_service() -> TaskService:
+    if dependency_container.task_service is None:
+        raise ValueError(
+            "TaskService not initialized. Ensure repositories are set up first."
+        )
+    return dependency_container.task_service
 
 
-def get_auth_service(
-    repository: BaseAuthRepository = Depends(get_auth_repository),
-) -> AuthService:
-    return AuthService(repository)
+def get_auth_service() -> AuthService:
+    if dependency_container.auth_service is None:
+        raise ValueError(
+            "AuthService not initialized. Ensure repositories are set up first."
+        )
+    return dependency_container.auth_service

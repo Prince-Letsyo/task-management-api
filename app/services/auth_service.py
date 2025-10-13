@@ -1,13 +1,16 @@
-from jose import jwt,ExpiredSignatureError,JWTError
 from app.schemas import User, UserCreate, Token, UserBase
 from app.repositories.base_repository import BaseAuthRepository
-from app.utils import ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY, ALGORITHM
-from datetime import timedelta, datetime, timedelta, timezone
+from app.config import config
+from app.utils import create_access_token
+from datetime import timedelta
 from fastapi import HTTPException, status
-from pydantic import BaseModel
+
 
 class UserResponse(UserBase):
     token: Token
+
+
+ACCESS_TOKEN_EXPIRE_MINUTES = config.env.get("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 
 class AuthService:
@@ -23,7 +26,7 @@ class AuthService:
     def __prepare_token_data(self, user: User) -> UserResponse:
         access_token_expires = timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES))
         access_token = create_access_token(
-            data={"username":  user.username, "email":user.email},
+            data={"username": user.username, "email": user.email},
             expires_delta=access_token_expires,
         )
         return UserResponse(
@@ -41,26 +44,3 @@ class AuthService:
                 headers={"WWW-Authenticate": "Bearer"},
             )
         return self.__prepare_token_data(user)
-
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
-
-
-def decode_access_token(token: str) -> dict:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )

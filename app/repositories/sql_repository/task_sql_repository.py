@@ -2,6 +2,13 @@ from typing import List, Optional
 from app.schemas import TaskCreate, Task, TaskUpdate
 from app.repositories.base_repository import BaseTaskRepository
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.exc import (
+    IntegrityError,
+    OperationalError,
+    DataError,
+    ProgrammingError,
+    SQLAlchemyError,
+)
 from sqlmodel import delete
 
 
@@ -10,10 +17,13 @@ class TaskSQLRepository(BaseTaskRepository):
         self.db: AsyncSession = db
 
     async def get_all_tasks(self, user_id: int) -> List[Task]:
-        result = await self.db.exec(
-            Task.__table__.select().where(Task.user_id == user_id)
-        )
-        return result.all()
+        try:
+            result = await self.db.exec(
+                Task.__table__.select().where(Task.user_id == user_id)
+            )
+            return result.all()
+        except Exception as e:
+            raise e
 
     async def get_task_by_id(self, user_id: int, task_id: int) -> Optional[Task]:
         return await self.db.get(Task, task_id=task_id, user_id=user_id)

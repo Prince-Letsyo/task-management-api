@@ -4,7 +4,6 @@ from app.schemas import TaskCreate, Task, TaskUpdate, User
 from app.services import TaskService
 from app.dependencies import get_task_service
 
-
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
@@ -20,17 +19,17 @@ def require_auth(request: Request):
     "/",
     status_code=status.HTTP_200_OK,
     response_model=List[Task],
-    dependencies=[Depends(require_auth)],
+    dependencies=[
+        Depends(require_auth),
+    ],
 )
 async def read_tasks(
     request: Request,
     task_service: TaskService = Depends(get_task_service),
 ):
     user: User = request.state.user
-    print(user)
     all_task = await task_service.get_all_tasks(username=user["username"])
     return all_task
-
 
 @router.get(
     "/{task_id}",
@@ -42,7 +41,9 @@ async def read_tasks(
             "description": "Item retrieved successfully",
         },
     },
-    dependencies=[Depends(require_auth)],
+    dependencies=[
+        Depends(require_auth),
+    ],
 )
 async def read_task_by_id(
     request: Request,
@@ -69,7 +70,9 @@ async def read_task_by_id(
             "description": "Item created successfully",
         }
     },
-    dependencies=[Depends(require_auth)],
+    dependencies=[
+        Depends(require_auth),
+    ],
 )
 async def create_post(
     request: Request,
@@ -92,7 +95,9 @@ async def create_post(
             "description": "Item updated successfully",
         },
     },
-    dependencies=[Depends(require_auth)],
+    dependencies=[
+        Depends(require_auth),
+    ],
 )
 async def update_task(
     request: Request,
@@ -121,7 +126,9 @@ async def update_task(
             "description": "Item partially updated successfully",
         },
     },
-    dependencies=[Depends(require_auth)],
+    dependencies=[
+        Depends(require_auth),
+    ],
 )
 async def partial_update_task(
     request: Request,
@@ -144,7 +151,9 @@ async def partial_update_task(
 @router.delete(
     "/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    dependencies=[Depends(require_auth)],
+    dependencies=[
+        Depends(require_auth),
+    ],
 )
 async def delete_task(
     request: Request,
