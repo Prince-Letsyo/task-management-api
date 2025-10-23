@@ -3,7 +3,7 @@ from app.env import env
 
 
 class DatabaseConfig(BaseModel):
-    url: HttpUrl | str = env.DB_URL  # Use validated env variable
+    url: HttpUrl | str | None = env.DB_URL  # Use validated env variable
     logging: bool = False
 
 

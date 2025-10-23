@@ -1,3 +1,4 @@
+from typing import cast
 from app.schemas import User, UserCreate, Token, UserBase
 from app.repositories.base_repository import BaseAuthRepository
 from app.config import config
@@ -24,7 +25,9 @@ class AuthService:
         return self.__prepare_token_data(user)
 
     def __prepare_token_data(self, user: User) -> UserResponse:
-        access_token_expires = timedelta(minutes=float(ACCESS_TOKEN_EXPIRE_MINUTES))
+        access_token_expires = timedelta(
+            minutes=float(cast(str, ACCESS_TOKEN_EXPIRE_MINUTES))
+        )
         access_token = create_access_token(
             data={"username": user.username, "email": user.email},
             expires_delta=access_token_expires,
@@ -36,7 +39,9 @@ class AuthService:
         )
 
     async def log_in(self, username: str, password: str) -> UserResponse:
-        user = await self.repository.authenticate_user(username, password)
+        user = await self.repository.authenticate_user(
+            username=username, password=password
+        )
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

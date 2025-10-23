@@ -1,6 +1,5 @@
 import pytest
-import pytest_asyncio
-from app.schemas import UserCreate, User
+from app.schemas import UserCreate
 from app.repositories import AuthInMemoryRepository
 
 

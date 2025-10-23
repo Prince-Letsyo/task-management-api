@@ -1,5 +1,4 @@
 from sqlmodel import SQLModel, Field
-from typing import Optional
 from pydantic import ConfigDict
 
 
@@ -7,7 +6,7 @@ class TokenBase(SQLModel):
     access_token: str = Field(nullable=False)
     token_type: str = Field(nullable=False)
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ConfigDict = ConfigDict(from_attributes=True)
 
 
 class TokenModel(TokenBase):
@@ -19,8 +18,8 @@ class TokenError(SQLModel):
 
 
 class TokenData(SQLModel):
-    username: Optional[str] = None
+    username: str | None = None
     scopes: list[str] = []
-    user_id: Optional[int] = None
-    exp: Optional[int] = None
+    user_id: int | None = None
+    exp: int | None = None
     model_config = ConfigDict(from_attributes=True)

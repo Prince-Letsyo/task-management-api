@@ -1,6 +1,7 @@
 import re
 import json
 from loguru import logger
+from loguru._handler import Message
 from app.config import config
 
 
@@ -8,8 +9,8 @@ def app_logger():
     """
     Configure Loguru logger with file sink, rotation, and sensitive data filter.
     """
-    logger.add(
-        "logs/app_{time:YYYY-MM-DD}.log",
+    _ = logger.add(
+        "logs/app.log",
         rotation="10 MB",
         retention="7 days",
         level=(
@@ -21,7 +22,7 @@ def app_logger():
     )
 
     # Add JSON sink for structured logging
-    def json_sink(message):
+    def json_sink(message: Message) -> None:
         record = message.record
         log_entry = {
             "time": record["time"].strftime("%Y-%m-%d %H:%M:%S"),
@@ -33,7 +34,7 @@ def app_logger():
             "extra": record["extra"],
         }
         with open("logs/json.log", "a") as f:
-            f.write(json.dumps(log_entry) + "\n")
+            _ = f.write(json.dumps(log_entry) + "\n")
 
     logger.add(json_sink, format="{message}")
     return logger
@@ -44,7 +45,7 @@ PASSWORD_PATTERN = re.compile(r"\b[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]\b", re.IGNORE
 TOKEN_PATTERN = re.compile(r"\b(token|api_key|secret|auth)\b", re.IGNORECASE)
 
 
-def filter_sensitive(data):
+def filter_sensitive(data: dict[str, str | int] | str):
     if isinstance(data, dict):
         for key in data:
             if PASSWORD_PATTERN.search(key):

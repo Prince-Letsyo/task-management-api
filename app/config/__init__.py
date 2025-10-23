@@ -10,9 +10,9 @@ class Config(BaseModel):
     app_name: str
     enable_cors: bool
     log_level: str
-    database: dict  # Using dict to allow flexible merging
-    features: dict
-    env: dict
+    database: dict[str, str | bool]  # Using dict to allow flexible merging
+    features: dict[str, bool]
+    env: dict[str, str | int | bool]
 
 
 # Environment-specific configurations

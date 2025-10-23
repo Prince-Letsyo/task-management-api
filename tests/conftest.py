@@ -1,18 +1,14 @@
-import os
+from typing import cast
 import pytest_asyncio
-from dotenv import load_dotenv
 from faker import Faker
 from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from unittest.mock import AsyncMock, Mock
-
 from app.db import AsyncSessionLocal
 from app.config import config
 
-load_dotenv()
-
 # Create async engine
-test_engine = create_async_engine(config.database.get("url"), echo=False)
+test_engine = create_async_engine(cast(str,config.database.get("url")), echo=False)
 
 AsyncSessionLocal.configure(bind=test_engine)
 
@@ -59,7 +55,7 @@ async def auth_mock_session():
 
 
 @pytest_asyncio.fixture
-async def faker_session():
+async def faker_session()->Faker:
     # Create a Faker instance with a fixed seed for reproducible data
     faker = Faker()
     faker.seed_instance(1234)  # Fixed seed for reproducibility
@@ -67,7 +63,7 @@ async def faker_session():
 
 
 @pytest_asyncio.fixture
-async def mock_task(faker_session):
+async def mock_task(faker_session: Faker):
     # Generate dummy task data
     return {
         "id": faker_session.random_int(min=1, max=1000),
@@ -80,7 +76,7 @@ async def mock_task(faker_session):
 
 
 @pytest_asyncio.fixture
-async def mock_user(faker_session):
+async def mock_user(faker_session:Faker):
     # Generate dummy user data
     return {
         "id": faker_session.random_int(min=1, max=1000),

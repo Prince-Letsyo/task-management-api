@@ -1,6 +1,5 @@
 # app/models/task.py
-from sqlmodel import SQLModel, Field, Enum
-from typing import Optional
+from sqlmodel import Enum, SQLModel, Field
 import enum
 from pydantic import ConfigDict
 
@@ -14,13 +13,13 @@ class TaskStatus(str, enum.Enum):
 
 # Base model for shared fields
 class TaskBase(SQLModel):
-    title: str = Field(index=True, nullable=False)
-    description: Optional[str] = Field(default=None, nullable=True)
+    title: str | None = Field(index=True, nullable=False)
+    description: str | None = Field(default=None, nullable=True)
     status: TaskStatus = Field(
         default=TaskStatus.PENDING, sa_type=Enum(TaskStatus), nullable=False
     )
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config: ConfigDict = ConfigDict(from_attributes=True)
 
 
 # Model for creating tasks (used in POST requests)
@@ -30,11 +29,7 @@ class TaskCreate(TaskBase):
 
 # Model for updating tasks (used in PUT/PATCH requests)
 class TaskUpdate(TaskBase):
-    title: Optional[str] = Field(default=None, nullable=True)
-    description: Optional[str] = Field(default=None, nullable=True)
-    status: Optional[TaskStatus] = Field(
-        default=None, sa_type=Enum(TaskStatus), nullable=True
-    )
+    pass
 
 
 # Model for error responses

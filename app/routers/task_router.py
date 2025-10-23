@@ -1,24 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from typing import List
-from app.schemas import TaskCreate, Task, TaskUpdate, User
+from typing import cast
+from app.schemas import TaskCreate, Task, TaskUpdate
 from app.services import TaskService
 from app.dependencies import get_task_service
+from app.utils.auth import JWTPayload
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-def require_auth(request: Request):
-    if not request.state.user:
+def require_auth(request: Request) -> JWTPayload:
+    if request.state.user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or missing JWT"
         )
-    return request.state.user
+    return cast(JWTPayload, request.state.user)
 
 
 @router.get(
     "/",
     status_code=status.HTTP_200_OK,
-    response_model=List[Task],
+    response_model=list[Task],
     dependencies=[
         Depends(require_auth),
     ],
@@ -27,9 +28,10 @@ async def read_tasks(
     request: Request,
     task_service: TaskService = Depends(get_task_service),
 ):
-    user: User = request.state.user
+    user = cast(JWTPayload, request.state.user)
     all_task = await task_service.get_all_tasks(username=user["username"])
     return all_task
+
 
 @router.get(
     "/{task_id}",
@@ -50,13 +52,8 @@ async def read_task_by_id(
     task_id: int,
     task_service: TaskService = Depends(get_task_service),
 ) -> Task:
-    user: User = request.state.user
+    user = cast(JWTPayload, request.state.user)
     task = await task_service.get_task_by_id(username=user["username"], task_id=task_id)
-    if task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
     return task
 
 
@@ -79,7 +76,7 @@ async def create_post(
     task_create: TaskCreate,
     task_service: TaskService = Depends(get_task_service),
 ) -> Task:
-    user: User = request.state.user
+    user = cast(JWTPayload, request.state.user)
     new_task = await task_service.create_task(
         username=user["username"], task_create=task_create
     )
@@ -105,15 +102,10 @@ async def update_task(
     task_update: TaskUpdate,
     task_service: TaskService = Depends(get_task_service),
 ):
-    user: User = request.state.user
+    user = cast(JWTPayload, request.state.user)
     updated_task = await task_service.update_task(
         username=user["username"], task_id=task_id, task_update=task_update
     )
-    if updated_task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
     return updated_task
 
 
@@ -136,15 +128,10 @@ async def partial_update_task(
     task_update: TaskUpdate,
     task_service: TaskService = Depends(get_task_service),
 ):
-    user: User = request.state.user
+    user = cast(JWTPayload, request.state.user)
     partial_updated_task = await task_service.update_task(
         username=user["username"], task_id=task_id, task_update=task_update
     )
-    if partial_updated_task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task with id {task_id} not found",
-        )
     return partial_updated_task
 
 
@@ -160,7 +147,7 @@ async def delete_task(
     task_id: int,
     task_service: TaskService = Depends(get_task_service),
 ):
-    user: User = request.state.user
+    user = cast(JWTPayload, request.state.user)
     success = await task_service.delete_task(username=user["username"], task_id=task_id)
     if not success:
         raise HTTPException(

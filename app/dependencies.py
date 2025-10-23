@@ -1,4 +1,7 @@
+from typing import ClassVar
+from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
+from app.db import get_db_session
 from app.repositories import (
     TaskSQLRepository,
     AuthSQLRepository,
@@ -6,27 +9,21 @@ from app.repositories import (
 from app.repositories.base_repository import BaseTaskRepository, BaseAuthRepository
 from app.services import TaskService, AuthService
 
-# from app.db import get_db
-from typing import Optional
-
 
 class DependencyContainer:
-    _instance = None
-    task_repository: Optional[BaseTaskRepository] = None
-    auth_repository: Optional[BaseAuthRepository] = None
-    task_service: Optional[TaskService] = None
-    auth_service: Optional[AuthService] = None
+    _instance: ClassVar["DependencyContainer | None"] = None
+    task_repository: BaseTaskRepository | None = None
+    auth_repository: BaseAuthRepository | None = None
+    task_service: TaskService | None = None
+    auth_service: AuthService | None = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    async def initialize(self, db: Optional[AsyncSession] = None):
+    async def initialize(self, db: AsyncSession):
         if self.task_repository is None or self.auth_repository is None:
-            # Initialize repositories based on environment
-            if db is None:
-                raise ValueError("Database session required for SQL repositories")
             self.task_repository = TaskSQLRepository(db)
             self.auth_repository = AuthSQLRepository(db)
 
@@ -48,17 +45,27 @@ class DependencyContainer:
 dependency_container = DependencyContainer()
 
 
-def get_task_service() -> TaskService:
+async def get_task_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> TaskService:
+    await dependency_container.initialize(session)
     if dependency_container.task_service is None:
         raise ValueError(
             "TaskService not initialized. Ensure repositories are set up first."
         )
-    return dependency_container.task_service
+    service = dependency_container.task_service
+    await dependency_container.cleanup()
+    return service
 
 
-def get_auth_service() -> AuthService:
+async def get_auth_service(
+    session: AsyncSession = Depends(get_db_session),
+) -> AuthService:
+    await dependency_container.initialize(session)
     if dependency_container.auth_service is None:
         raise ValueError(
             "AuthService not initialized. Ensure repositories are set up first."
         )
-    return dependency_container.auth_service
+    service = dependency_container.auth_service
+    await dependency_container.cleanup()
+    return service

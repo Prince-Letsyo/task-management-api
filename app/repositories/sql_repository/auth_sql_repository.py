@@ -1,25 +1,24 @@
+from sqlalchemy import ScalarResult
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.exc import (
-    IntegrityError,
-    OperationalError,
-    DataError,
-    ProgrammingError,
-    SQLAlchemyError,
-)
 from app.schemas import User, UserCreate
 from app.utils import get_password_hash, verify_password
 from app.repositories.base_repository import BaseAuthRepository
+from app.exceptions import InvalidUserPasswordException
+from typing import override
 
 
 class AuthSQLRepository(BaseAuthRepository):
     def __init__(self, db: AsyncSession):
         self.db: AsyncSession = db
 
+    @override
     async def create_user(self, user_create: UserCreate) -> User:
-        user = User(
-            username=user_create.username,
-            email=user_create.email,
-            password=get_password_hash(user_create.password),
+        user = User.model_validate(
+            {
+                **user_create.model_dump(),
+                "password": get_password_hash(user_create.password),
+            }
         )
         try:
             self.db.add(user)
@@ -27,19 +26,24 @@ class AuthSQLRepository(BaseAuthRepository):
             await self.db.refresh(user)
             return user
         except Exception as e:
-            await self.db.rollback()
-            return None
+            raise e
 
+    @override
     async def authenticate_user(self, username: str, password: str) -> User:
-        user = await self.get_user_by_username(username)
-        if not user:
-            return None
-        if not verify_password(password, user.password):
-            return None
-        return user
+        try:
+            user = await self.get_user_by_username(username)
+            if not verify_password(password, user.password):
+                raise InvalidUserPasswordException("Invalid user credentials")
+            return user
+        except Exception as e:
+            raise e
 
+    @override
     async def get_user_by_username(self, username: str) -> User:
-        query = await self.db.exec(
-            User.__table__.select().where(User.username == username)
-        )
-        return query.first()
+        try:
+            result: ScalarResult[User] = await self.db.exec(
+                select(User).where(User.username == username)
+            )
+            return result.one()
+        except Exception as e:
+            raise e
