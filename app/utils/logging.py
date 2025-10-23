@@ -1,3 +1,6 @@
+from typing import Any
+
+
 import re
 import json
 from loguru import logger
@@ -24,7 +27,7 @@ def app_logger():
     # Add JSON sink for structured logging
     def json_sink(message: Message) -> None:
         record = message.record
-        log_entry = {
+        log_entry: dict[str, Any] = {  # pyright: ignore[reportExplicitAny]
             "time": record["time"].strftime("%Y-%m-%d %H:%M:%S"),
             "level": record["level"].name,
             "module": record["name"],
@@ -36,7 +39,7 @@ def app_logger():
         with open("logs/json.log", "a") as f:
             _ = f.write(json.dumps(log_entry) + "\n")
 
-    logger.add(json_sink, format="{message}")
+    logger.add(json_sink, format="{message}")  # pyright: ignore[reportCallIssue, reportArgumentType]
     return logger
 
 

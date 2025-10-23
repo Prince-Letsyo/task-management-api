@@ -16,10 +16,14 @@ class TaskBase(SQLModel):
     title: str | None = Field(index=True, nullable=False)
     description: str | None = Field(default=None, nullable=True)
     status: TaskStatus = Field(
-        default=TaskStatus.PENDING, sa_type=Enum(TaskStatus), nullable=False
+        default=TaskStatus.PENDING,
+        sa_type=Enum(enums=TaskStatus),  # pyright: ignore[reportArgumentType]
+        nullable=False,
     )
 
-    model_config: ConfigDict = ConfigDict(from_attributes=True)
+    model_config: ConfigDict = (  # pyright: ignore[reportIncompatibleVariableOverride]
+        ConfigDict(from_attributes=True)
+    )
 
 
 # Model for creating tasks (used in POST requests)

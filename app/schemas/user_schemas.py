@@ -6,7 +6,9 @@ class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False, unique=True)
     email: EmailStr = Field(index=True, nullable=False)
 
-    model_config: ConfigDict = ConfigDict(from_attributes=True)
+    model_config: ConfigDict = (  # pyright: ignore[reportIncompatibleVariableOverride]
+        ConfigDict(from_attributes=True)
+    )
 
 
 class UserCreate(UserBase):
@@ -25,4 +27,6 @@ class UserError(SQLModel):
 class AuthLogin(SQLModel):
     username: str = Field(index=True, nullable=False, unique=True)
     password: str = Field(nullable=False, min_length=8)
-    model_config: ConfigDict = ConfigDict(from_attributes=True)
+    model_config: ConfigDict = (  # pyright: ignore[reportIncompatibleVariableOverride]
+        ConfigDict(from_attributes=True)
+    )

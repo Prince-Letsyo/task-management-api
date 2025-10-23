@@ -1,11 +1,8 @@
-from typing import ClassVar
+from typing import ClassVar, Self
 from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.db import get_db_session
-from app.repositories import (
-    TaskSQLRepository,
-    AuthSQLRepository,
-)
+from .db import get_db_session
+from app.repositories import TaskSQLRepository, AuthSQLRepository
 from app.repositories.base_repository import BaseTaskRepository, BaseAuthRepository
 from app.services import TaskService, AuthService
 
@@ -17,12 +14,12 @@ class DependencyContainer:
     task_service: TaskService | None = None
     auth_service: AuthService | None = None
 
-    def __new__(cls):
+    def __new__(cls) -> Self | "DependencyContainer":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    async def initialize(self, db: AsyncSession):
+    async def initialize(self, db: AsyncSession) -> None:
         if self.task_repository is None or self.auth_repository is None:
             self.task_repository = TaskSQLRepository(db)
             self.auth_repository = AuthSQLRepository(db)
@@ -42,11 +39,13 @@ class DependencyContainer:
 
 
 # Global container instance
-dependency_container = DependencyContainer()
+dependency_container: DependencyContainer = DependencyContainer()
 
 
 async def get_task_service(
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(
+        dependency=get_db_session
+    ),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> TaskService:
     await dependency_container.initialize(session)
     if dependency_container.task_service is None:
@@ -59,9 +58,11 @@ async def get_task_service(
 
 
 async def get_auth_service(
-    session: AsyncSession = Depends(get_db_session),
+    session: AsyncSession = Depends(
+        dependency=get_db_session
+    ),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> AuthService:
-    await dependency_container.initialize(session)
+    await dependency_container.initialize(db=session)
     if dependency_container.auth_service is None:
         raise ValueError(
             "AuthService not initialized. Ensure repositories are set up first."

@@ -1,15 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from app.schemas import TaskCreate, Task, TaskUpdate, User, UserCreate
 
 
 class BaseTaskRepository(ABC):
     @abstractmethod
-    async def get_task_by_id(self, task_id: int) -> Optional[Task]:
+    async def get_task_by_id(self, user_id: int, task_id: int) -> Task:
         pass
 
     @abstractmethod
-    async def get_all_tasks(self, user_id: int) -> List[Task]:
+    async def get_all_tasks(self, user_id: int) -> list[Task]:
         pass
 
     @abstractmethod
@@ -19,7 +18,7 @@ class BaseTaskRepository(ABC):
     @abstractmethod
     async def update_task(
         self, user_id: int, task_id: int, task_update: TaskUpdate
-    ) -> Optional[Task]:
+    ) -> Task:
         pass
 
     @abstractmethod
@@ -28,12 +27,11 @@ class BaseTaskRepository(ABC):
         user_id: int,
         task_id: int,
         task_update: TaskUpdate,
-        exclude_unset: bool = True,
-    ) -> Optional[Task]:
+    ) -> Task:
         pass
 
     @abstractmethod
-    async def delete_task(self, task_id: int) -> bool:
+    async def delete_task(self, user_id: int, task_id: int) -> bool:
         pass
 
 

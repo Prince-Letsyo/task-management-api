@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.env import env
+from app.core.env import env
 from .base import BaseConfig
 from .dev import DevConfig
 from .prod import ProdConfig
@@ -16,17 +16,17 @@ class Config(BaseModel):
 
 
 # Environment-specific configurations
-env_configs = {
+env_configs: dict[str, DevConfig | ProdConfig | TestConfig] = {
     "development": DevConfig(),
     "production": ProdConfig(),
     "test": TestConfig(),
 }
 
 # Merge base config with environment-specific config
-base_config = BaseConfig()
-env_config = env_configs[env.ENV_MODE]
+base_config: BaseConfig = BaseConfig()
+env_config: DevConfig | ProdConfig | TestConfig = env_configs[env.ENV_MODE]
 
-config = Config(
+config: Config = Config(
     app_name=base_config.app_name,
     enable_cors=base_config.enable_cors,
     log_level=base_config.log_level,

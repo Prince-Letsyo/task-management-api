@@ -1,27 +1,31 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any, cast
 from fastapi import FastAPI
+from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from app.db import init_db, AsyncSessionLocal
+from app.core import  AppException
 from app.config import config
+from app.core.db import init_db
 from app.routers import task_router, auth_router
-from app.dependencies import dependency_container
-from app.middlewares import jwt_decoder, logging_middleware
+from app.middlewares import (
+    app_exception_handler,
+    global_exception_handler,
+    http_exception_handler,
+    jwt_decoder,
+    logging_middleware,
+    validation_exception_handler,
+)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await init_db()
-    async with AsyncSessionLocal() as session:
-        await dependency_container.initialize(session)
-        yield
-        await session.close()
-
     yield
-    await dependency_container.cleanup()
 
 
-app = FastAPI(
+app: FastAPI = FastAPI(
     title=config.app_name,
     license_info={"name": "MIT License"},
     docs_url="/docs",
@@ -32,13 +36,13 @@ app = FastAPI(
 
 
 # ✅ FIXED: Use get_openapi() to avoid recursion
-def custom_openapi():
+def custom_openapi() -> dict[str, Any]:  # pyright: ignore[reportExplicitAny]
     if app.openapi_schema:
         return app.openapi_schema
 
-    openapi_schema = get_openapi(
+    openapi_schema: dict[str, Any] = get_openapi(  # pyright: ignore[reportExplicitAny]
         title=config.app_name,
-        version=config.env.get("VERSION"),
+        version=cast(str, config.env.get("VERSION", "1.0.0")),
         description="A simple Task Management API built with FastAPI",
         contact={"name": "Prince Kumar", "email": "test@gm.com"},
         routes=app.routes,
@@ -53,29 +57,49 @@ def custom_openapi():
             "description": "Enter your JWT token in the format: Bearer <token>",
         }
     }
-    for path in openapi_schema["paths"].values():
-        for method in path.values():
-            method.setdefault("security", [{"BearerAuth": []}])
+    for path in openapi_schema["paths"].values():  # pyright: ignore[reportAny]
+        for method in path.values():  # pyright: ignore[reportAny]
+            method.setdefault(  # pyright: ignore[reportAny]
+                "security", [{"BearerAuth": []}]
+            )
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 
 app.openapi = custom_openapi
 
-app.middleware("http")(jwt_decoder)
-app.middleware("http")(logging_middleware)
+app.add_exception_handler(
+    exc_class_or_status_code=RequestValidationError,
+    handler=validation_exception_handler,  # pyright: ignore[reportArgumentType]
+)
+app.add_exception_handler(
+    exc_class_or_status_code=HTTPException,
+    handler=http_exception_handler,  # pyright: ignore[reportArgumentType]
+)
+app.add_exception_handler(
+    exc_class_or_status_code=AppException,
+    handler=app_exception_handler,  # pyright: ignore[reportArgumentType]
+)
+app.add_exception_handler(
+    exc_class_or_status_code=Exception, handler=global_exception_handler
+)
+
 if config.enable_cors:
     app.add_middleware(
-        CORSMiddleware,
+        middleware_class=CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-app.include_router(auth_router)
-app.include_router(task_router)
+_ = app.middleware(middleware_type="http")(jwt_decoder)
+_ = app.middleware(middleware_type="http")(logging_middleware)
 
 
-@app.get("/")
-def index():
+app.include_router(router=auth_router)
+app.include_router(router=task_router)
+
+
+@app.get(path="/")
+def index() -> dict[str, str]:
     return {"message": "Welcome to Task Management Api Project!"}

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, HttpUrl
-from app.env import env
+from app.core.env import env
 
 
 class DatabaseConfig(BaseModel):

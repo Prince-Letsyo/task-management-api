@@ -10,7 +10,7 @@ from app.config import config
 engine = create_async_engine(cast(str, config.database.get("url")), echo=False)
 
 # Create async session factory
-AsyncSessionLocal = async_sessionmaker(
+AsyncSessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker[AsyncSession](
     bind=engine,
     class_=AsyncSession,
     autocommit=False,
@@ -33,6 +33,6 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 # Optional: Create tables (run once during app startup)
-async def init_db():
+async def init_db() -> None:
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.run_sync(fn=SQLModel.metadata.create_all)

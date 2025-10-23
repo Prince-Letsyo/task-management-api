@@ -5,7 +5,7 @@ from .task_schemas import TaskBase
 
 
 class UserModel(UserCreate, table=True):
-    __tablename__ = "users"
+    __tablename__ = "users"  # pyright: ignore[reportUnannotatedClassAttribute, reportAssignmentType]
     id: int | None = Field(default=None, primary_key=True, index=True)
     tasks: list["TaskModel"] = cast(
         list["TaskModel"], Relationship(back_populates="user")
@@ -14,7 +14,7 @@ class UserModel(UserCreate, table=True):
 
 # Model for database and full task response (used in GET/POST responses)
 class TaskModel(TaskBase, table=True):
-    __tablename__ = "tasks"
+    __tablename__ = "tasks"  # pyright: ignore[reportUnannotatedClassAttribute, reportAssignmentType]
     id: int | None = Field(default=None, primary_key=True, index=True)
     # Foreign key referencing the User model
     user_id: int | None = Field(default=None, foreign_key="users.id")

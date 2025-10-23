@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, HttpUrl
-from typing import Literal
+from typing import Literal, ClassVar
 import sys
 
 
@@ -14,7 +14,7 @@ class EnvConfig(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
     DB_URL: HttpUrl | str | None = None  # Optional URL
 
-    model_config = SettingsConfigDict(
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file="./.env",
         env_file_encoding="utf-8",
         case_sensitive=False,
@@ -22,7 +22,7 @@ class EnvConfig(BaseSettings):
 
 
 try:
-    env = EnvConfig()
+    env: EnvConfig = EnvConfig()
 except ValueError as e:
     print("❌ Invalid environment variables:", e)
     sys.exit(1)

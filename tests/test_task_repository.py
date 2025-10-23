@@ -1,7 +1,8 @@
+from typing import cast
 import pytest
 import pytest_asyncio
 from unittest.mock import Mock
-from sqlmodel import delete
+from sqlmodel import delete, select
 from app.repositories import (
     TaskSQLRepository,
     TaskInMemoryRepository,
@@ -9,6 +10,8 @@ from app.repositories import (
     AuthSQLRepository,
 )
 from app.schemas import TaskCreate, TaskUpdate, Task, User, UserCreate
+from tests.conftest import TaskTyped, UserTyped
+from collections.abc import Awaitable
 
 
 @pytest.fixture
@@ -22,7 +25,9 @@ def in_memory_auth_repository():
 
 
 @pytest.mark.asyncio
-async def create_user(in_memory_auth_repository, mock_user) -> User:
+async def create_user(
+    in_memory_auth_repository: AuthInMemoryRepository, mock_user: UserTyped
+):
     mocked_user = mock_user.copy()
     user_create = UserCreate(
         username=mocked_user["username"],
@@ -35,7 +40,12 @@ async def create_user(in_memory_auth_repository, mock_user) -> User:
 @pytest.mark.asyncio
 class TestTaskInMemoryRepository:
 
-    async def test_create_task(self, in_memory_task_repository, mock_task, create_user):
+    async def test_create_task(
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        mock_task: TaskTyped,
+        create_user: Awaitable[User],
+    ):
         user = await create_user
         task_data = TaskCreate(
             title=mock_task["title"],
@@ -43,7 +53,7 @@ class TestTaskInMemoryRepository:
             status=mock_task["status"],
         )
         created_task = await in_memory_task_repository.create_task(
-            user_id=user.id, task_create=task_data
+            user_id=cast(int, user.id), task_create=task_data
         )
         assert created_task.id is not None
         assert created_task.title == task_data.title
@@ -51,7 +61,10 @@ class TestTaskInMemoryRepository:
         assert created_task.status == task_data.status
 
     async def test_get_all_tasks(
-        self, in_memory_task_repository, mock_task, create_user
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        mock_task: TaskTyped,
+        create_user: Awaitable[User],
     ):
         user = await create_user
         task1 = TaskCreate(
@@ -64,15 +77,24 @@ class TestTaskInMemoryRepository:
             description=mock_task["description"],
             status=mock_task["status"],
         )
-        await in_memory_task_repository.create_task(user_id=user.id, task_create=task1)
-        await in_memory_task_repository.create_task(user_id=user.id, task_create=task2)
+        _ = await in_memory_task_repository.create_task(
+            user_id=cast(int, user.id), task_create=task1
+        )
+        _ = await in_memory_task_repository.create_task(
+            user_id=cast(int, user.id), task_create=task2
+        )
 
-        tasks = await in_memory_task_repository.get_all_tasks(user_id=user.id)
+        tasks = await in_memory_task_repository.get_all_tasks(
+            user_id=cast(int, user.id)
+        )
         assert isinstance(tasks, list)
         assert len(tasks) >= 2  # At least the two tasks we just added
 
     async def test_get_task_by_id(
-        self, in_memory_task_repository, mock_task, create_user
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        mock_task: TaskTyped,
+        create_user: Awaitable[User],
     ):
         user = await create_user
         task_data = TaskCreate(
@@ -81,15 +103,20 @@ class TestTaskInMemoryRepository:
             status=mock_task["status"],
         )
         created_task = await in_memory_task_repository.create_task(
-            user_id=user.id, task_create=task_data
+            user_id=cast(int, user.id), task_create=task_data
         )
         fetched_task = await in_memory_task_repository.get_task_by_id(
-            user_id=user.id, task_id=created_task.id
+            user_id=cast(int, user.id), task_id=cast(int, created_task.id)
         )
         assert fetched_task is not None
         assert fetched_task.id == created_task.id
 
-    async def test_update_task(self, in_memory_task_repository, mock_task, create_user):
+    async def test_update_task(
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        mock_task: TaskTyped,
+        create_user: Awaitable[User],
+    ):
         user = await create_user
         task_data = TaskCreate(
             title=mock_task["title"],
@@ -97,7 +124,7 @@ class TestTaskInMemoryRepository:
             status=mock_task["status"],
         )
         created_task = await in_memory_task_repository.create_task(
-            user_id=user.id, task_create=task_data
+            user_id=cast(int, user.id), task_create=task_data
         )
         task_updated = mock_task
         update_data = TaskUpdate(
@@ -106,14 +133,19 @@ class TestTaskInMemoryRepository:
             status=task_updated["status"],
         )
         updated_task = await in_memory_task_repository.update_task(
-            user_id=user.id, task_id=created_task.id, task_update=update_data
+            user_id=cast(int, user.id),
+            task_id=cast(int, created_task.id),
+            task_update=update_data,
         )
         assert updated_task.title == task_updated["title"]
         assert updated_task.description == task_updated["description"]
         assert updated_task.status == task_updated["status"]
 
     async def test_partial_update_task(
-        self, in_memory_task_repository, mock_task, create_user
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        mock_task: TaskTyped,
+        create_user: Awaitable[User],
     ):
         user = await create_user
         task_updated = mock_task
@@ -123,20 +155,28 @@ class TestTaskInMemoryRepository:
             status=task_updated["status"],
         )
         created_task = await in_memory_task_repository.create_task(
-            user_id=user.id, task_create=task_data
+            user_id=cast(int, user.id), task_create=task_data
         )
         task_description_updated = mock_task["description"]
         update_data = TaskUpdate(
+            title=mock_task["title"],
             description=task_description_updated,
         )
         updated_task = await in_memory_task_repository.partial_update_task(
-            user_id=user.id, task_id=created_task.id, task_update=update_data
+            user_id=cast(int, user.id),
+            task_id=cast(int, created_task.id),
+            task_update=update_data,
         )
         assert updated_task.title == task_updated["title"]
         assert updated_task.description == task_description_updated
         assert updated_task.status == task_updated["status"]
 
-    async def test_delete_task(self, in_memory_task_repository, mock_task, create_user):
+    async def test_delete_task(
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        mock_task: TaskTyped,
+        create_user: Awaitable[User],
+    ):
         user = await create_user
         task_updated = mock_task
         task_data = TaskCreate(
@@ -145,37 +185,41 @@ class TestTaskInMemoryRepository:
             status=task_updated["status"],
         )
         created_task = await in_memory_task_repository.create_task(
-            user_id=user.id, task_create=task_data
+            user_id=cast(int, user.id), task_create=task_data
         )
         result = await in_memory_task_repository.delete_task(
-            user_id=user.id, task_id=created_task.id
+            user_id=cast(int, user.id), task_id=cast(int, created_task.id)
         )
         assert result is True
         fetched_task = await in_memory_task_repository.get_task_by_id(
-            user_id=user.id, task_id=created_task.id
+            user_id=cast(int, user.id), task_id=cast(int, created_task.id)
         )
         assert fetched_task is None
 
-    async def test_delete_task_not_found(self, in_memory_task_repository, create_user):
+    async def test_delete_task_not_found(
+        self,
+        in_memory_task_repository: TaskInMemoryRepository,
+        create_user: Awaitable[User],
+    ):
         user = await create_user
         result = await in_memory_task_repository.delete_task(
-            user_id=user.id, task_id=9999
+            user_id=cast(int, user.id), task_id=9999
         )
         assert result is False
 
 
-@pytest_asyncio.fixture
-async def task_repository(task_mock_session):
+@pytest.fixture
+def task_repository(task_mock_session: Mock):
     return TaskSQLRepository(task_mock_session)
 
 
 @pytest.fixture
-def auth_repository(auth_mock_session):
+def auth_repository(auth_mock_session: Mock):
     return AuthSQLRepository(auth_mock_session)
 
 
 @pytest.fixture
-async def create_user(auth_repository, mock_user) -> User:
+async def create_user_sql(auth_repository: AuthSQLRepository, mock_user: UserTyped):
     mocked_user = mock_user.copy()
     user_create = UserCreate(
         username=mocked_user["username"],
@@ -188,21 +232,25 @@ async def create_user(auth_repository, mock_user) -> User:
 @pytest.mark.asyncio
 class TestTaskSQLRepository:
     async def test_create_task(
-        self, task_repository, task_mock_session, mock_task, create_user
+        self,
+        task_repository: TaskSQLRepository,
+        task_mock_session: Mock,
+        mock_task: TaskTyped,
+        create_user_sql: Awaitable[User],
     ):
-        user = await create_user
+        user = await create_user_sql
         task_updated = mock_task
         task_data = TaskCreate(
             title=task_updated["title"],
             description=task_updated["description"],
             status=task_updated["status"],
         )
-        mock_task_ = Task(**task_data.model_dump())
+        # mock_task_ = Task.model_validate(**task_data.model_dump())
         task_mock_session.get.return_value = None
         task_mock_session.exec.return_value = Mock(all=Mock(return_value=[]))
 
         created_task = await task_repository.create_task(
-            user_id=user.id, task_create=task_data
+            user_id=cast(int, user.id), task_create=task_data
         )
 
         task_mock_session.add.assert_called_once()
@@ -215,44 +263,55 @@ class TestTaskSQLRepository:
         assert created_task.status == task_data.status
 
     async def test_get_all_tasks(
-        self, task_repository, task_mock_session, mock_task, create_user
+        self,
+        task_repository: TaskSQLRepository,
+        task_mock_session: Mock,
+        mock_task: TaskTyped,
+        create_user_sql: Awaitable[User],
     ):
-        user = await create_user
-        task = mock_task
+        user = await create_user_sql
+        print(f"user: {user}")
+        task = mock_task.copy()
         mock_tasked = Task(
             id=task["id"],
             title=task["title"],
             description=task["description"],
             status=task["status"],
+            user_id= cast(int, user.id),
         )
         task_mock_session.exec.return_value = Mock(all=Mock(return_value=[mock_tasked]))
 
-        tasks = await task_repository.get_all_tasks(user_id=user.id)
+        tasks = await task_repository.get_all_tasks(user_id=cast(int, user.id))
+        print(f"tasks: {tasks}")
 
         # Verify the query is a select on Task.__table__
         assert task_mock_session.exec.call_count >= 1
         query = task_mock_session.exec.call_args[0][0]
-        assert str(query) == str(
-            Task.__table__.select().where(Task.user_id == user.id)
-        ), f"Expected query {Task.__table__.select().where(Task.user_id==user.id)}, got {query}"
+        assert query == str(
+            select(Task).where(Task.user_id == cast(int, user.id))
+        ), f"Expected query {select(Task).where(Task.user_id==cast(int,user.id))}, got {query}"
         assert len(tasks) >= 1
         assert tasks[0].title == task["title"]
 
     async def test_get_task_by_id(
-        self, task_repository, task_mock_session, mock_task, create_user
+        self,
+        task_repository: TaskSQLRepository,
+        task_mock_session: Mock,
+        mock_task: TaskTyped,
+        create_user_sql: Awaitable[User],
     ):
-        user = await create_user
+        user = await create_user_sql
         task_ = mock_task
         mock_tasked = Task(
             id=task_["id"],
             title=task_["title"],
             description=task_["description"],
-            status=task_["status"],
+            status=task_["status"],user_id= cast(int, user.id),
         )
         task_mock_session.get.return_value = mock_tasked
 
         task = await task_repository.get_task_by_id(
-            user_id=user.id, task_id=task_["id"]
+            user_id=cast(int, user.id), task_id=task_["id"]
         )
 
         assert task.id == task_["id"]
@@ -264,7 +323,9 @@ class TestTaskSQLRepository:
         user = await create_user
         task_mock_session.get.return_value = None
 
-        task = await task_repository.get_task_by_id(user_id=user.id, task_id=9999)
+        task = await task_repository.get_task_by_id(
+            user_id=cast(int, user.id), task_id=9999
+        )
 
         assert task is None
 
@@ -288,7 +349,7 @@ class TestTaskSQLRepository:
         task_mock_session.get.return_value = mock_tasked
 
         updated_task = await task_repository.update_task(
-            user_id=user.id, task_id=task_["id"], task_update=task_update
+            user_id=cast(int, user.id), task_id=task_["id"], task_update=task_update
         )
 
         task_mock_session.add.assert_called_once_with(mock_tasked)
@@ -307,7 +368,7 @@ class TestTaskSQLRepository:
         task_update = TaskUpdate(title=task_updated["title"])
 
         updated_task = await task_repository.update_task(
-            user_id=user.id, task_id=9999, task_update=task_update
+            user_id=cast(int, user.id), task_id=9999, task_update=task_update
         )
 
         task_mock_session.add.assert_not_called()
@@ -331,7 +392,7 @@ class TestTaskSQLRepository:
         task_mock_session.get.return_value = mock_tasked
 
         updated_task = await task_repository.partial_update_task(
-            user_id=user.id, task_id=task_["id"], task_update=task_update
+            user_id=cast(int, user.id), task_id=task_["id"], task_update=task_update
         )
 
         task_mock_session.add.assert_called_once_with(mock_tasked)
@@ -349,7 +410,7 @@ class TestTaskSQLRepository:
         task_update = TaskUpdate(description="New description")
 
         updated_task = await task_repository.partial_update_task(
-            user_id=user.id, task_id=9999, task_update=task_update
+            user_id=cast(int, user.id), task_id=9999, task_update=task_update
         )
 
         task_mock_session.add.assert_not_called()
@@ -361,12 +422,16 @@ class TestTaskSQLRepository:
         user = await create_user
         task_mock_session.exec.return_value = Mock(rowcount=1)
 
-        result = await task_repository.delete_task(user_id=user.id, task_id=1)
+        result = await task_repository.delete_task(
+            user_id=cast(int, user.id), task_id=1
+        )
 
         # Verify the query is a delete statement for Task with the correct ID
         assert task_mock_session.exec.call_count == 1
         query = task_mock_session.exec.call_args[0][0]
-        expected_query = delete(Task).where(Task.id == 1 and Task.user_id == user.id)
+        expected_query = delete(Task).where(
+            Task.id == 1 and Task.user_id == cast(int, user.id)
+        )
         assert str(query) == str(
             expected_query
         ), f"Expected query {expected_query}, got {query}"
@@ -379,12 +444,16 @@ class TestTaskSQLRepository:
         user = await create_user
         task_mock_session.exec.return_value = Mock(rowcount=0)
 
-        result = await task_repository.delete_task(user_id=user.id, task_id=9999)
+        result = await task_repository.delete_task(
+            user_id=cast(int, user.id), task_id=9999
+        )
 
         # Verify the query is a delete statement for Task with the correct ID
         assert task_mock_session.exec.call_count == 1
         query = task_mock_session.exec.call_args[0][0]
-        expected_query = delete(Task).where(Task.id == 9999 and Task.user_id == user.id)
+        expected_query = delete(Task).where(
+            Task.id == 9999 and Task.user_id == cast(int, user.id)
+        )
         assert str(query) == str(
             expected_query
         ), f"Expected query {expected_query}, got {query}"
@@ -397,7 +466,9 @@ class TestTaskSQLRepository:
         user = await create_user
         task_mock_session.exec.side_effect = Exception("DB Error")
 
-        result = await task_repository.delete_task(task_id=1, user_id=user.id)
+        result = await task_repository.delete_task(
+            task_id=1, user_id=cast(int, user.id)
+        )
 
         task_mock_session.commit.assert_not_called()
         assert result is False
@@ -418,7 +489,9 @@ class TestTaskSQLRepository:
         )
 
         with pytest.raises(Exception) as exc_info:
-            await task_repository.create_task(user_id=user.id, task_create=task_data)
+            await task_repository.create_task(
+                user_id=cast(int, user.id), task_create=task_data
+            )
         print(exc_info.value)
         assert (
             str(exc_info.value)
