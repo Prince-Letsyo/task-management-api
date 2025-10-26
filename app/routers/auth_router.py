@@ -1,6 +1,6 @@
-from fastapi import  Depends, status
+from fastapi import Depends, status
 from app.routers.base import CustomRouter
-from app.schemas import AuthLogin, UserCreate
+from app.schemas import AccessToken, AuthLogin, UserCreate
 from app.services import AuthService, UserResponse
 from app.core import get_auth_service
 
@@ -30,3 +30,13 @@ async def sign_in(
     return await auth_service.log_in(
         username=login_user.username, password=login_user.password
     )
+
+
+@auth_router.post(path="/access", response_model=AccessToken)
+async def get_access_token(
+    token_string: str,
+    auth_service: AuthService = Depends(
+        dependency=get_auth_service
+    ),  # pyright: ignore[reportCallInDefaultInitializer]
+) -> AccessToken | None:
+    return await auth_service.get_access_token(token_string=token_string)

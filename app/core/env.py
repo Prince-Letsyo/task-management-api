@@ -12,7 +12,10 @@ class EnvConfig(BaseSettings):
     ALGORITHM: str = Field(default="HS256")
     VERSION: str = Field(default="1.0.0")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
+    REFRESH_TOKEN_EXPIRE_WEEKS: int = Field(default=4)
     DB_URL: HttpUrl | str | None = None  # Optional URL
+    REDIS_URL: HttpUrl | str | None = None  # Optional URL
+    REDIS_CACHE_EXPIRE: int = Field(default=300)
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file="./.env",

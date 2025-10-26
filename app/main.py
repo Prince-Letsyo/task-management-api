@@ -5,9 +5,10 @@ from fastapi import FastAPI
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from app.core import  AppException
+from app.core import AppException
 from app.config import config
 from app.core.db import init_db
+from app.core.redis import init_redis
 from app.routers import task_router, auth_router
 from app.middlewares import (
     app_exception_handler,
@@ -22,6 +23,7 @@ from app.middlewares import (
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await init_db()
+    await init_redis()
     yield
 
 

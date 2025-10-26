@@ -17,7 +17,7 @@ class TaskBase(SQLModel):
     description: str | None = Field(default=None, nullable=True)
     status: TaskStatus = Field(
         default=TaskStatus.PENDING,
-        sa_type=Enum(enums=TaskStatus),  # pyright: ignore[reportArgumentType]
+        sa_type=Enum(TaskStatus),  # pyright: ignore[reportArgumentType]
         nullable=False,
     )
 

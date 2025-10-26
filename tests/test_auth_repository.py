@@ -1,4 +1,3 @@
-from faker import Faker
 import pytest
 from app.schemas import UserCreate
 from app.repositories import AuthInMemoryRepository
@@ -20,9 +19,9 @@ class TestAuthInMemoryRepository:
         user = await in_memory_auth_repository.create_user(user_create)
         assert user.username == mocked_user["username"]
         assert user.email == mocked_user["email"]
-        assert user.password != mocked_user["password"]
+        assert user.hashed_password != mocked_user["password"]
         assert user.id is not None
-        assert user.password is not None
+        assert user.hashed_password is not None
 
     async def test_authenticate_user(
         self, in_memory_auth_repository: AuthInMemoryRepository, mock_user: UserTyped

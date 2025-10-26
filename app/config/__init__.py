@@ -12,6 +12,7 @@ class Config(BaseModel):
     log_level: str
     database: dict[str, str | bool]  # Using dict to allow flexible merging
     features: dict[str, bool]
+    redis: dict[str, str | int ]
     env: dict[str, str | int | bool]
 
 
@@ -32,6 +33,7 @@ config: Config = Config(
     log_level=base_config.log_level,
     database=env_config.database.model_dump(),
     features=env_config.features.model_dump(),
+    redis=env_config.redis.model_dump(),
     env=env.model_dump(),
 )
 

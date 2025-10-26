@@ -6,7 +6,7 @@ from jose.exceptions import ExpiredSignatureError, JWTError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import iterate_in_threadpool
 from app.schemas import TokenError
-from app.utils import decode_access_token, main_logger, filter_sensitive
+from app.utils import jwt_auth_token, main_logger, filter_sensitive
 from typing import Any, Callable
 from collections.abc import Awaitable
 
@@ -17,11 +17,8 @@ async def jwt_decoder(
     token: str | None = request.headers.get("Authorization")
     if token and token.startswith("Bearer "):
         try:
-            payload: dict[str, str] = decode_access_token(token=token.split(sep=" ")[1])
-            request.state.user = {
-                "username": payload.get("username"),
-                "email": payload.get("email"),
-            }
+            payload: dict[str, str] = jwt_auth_token.decode_token(token=token.split(sep=" ")[1])
+            request.state.user = payload
         except ExpiredSignatureError:
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,8 +68,8 @@ async def logging_middleware(
                 chunk
                 async for chunk in response.body_iterator  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType, reportAttributeAccessIssue]
             ]
-            response.body_iterator = iterate_in_threadpool(  # pyright: ignore[reportAttributeAccessIssue]
-                iter(response_body)
+            response.body_iterator = (  # pyright: ignore[reportAttributeAccessIssue]
+                iterate_in_threadpool(iter(response_body))
             )
             try:
                 resp_body: dict[str, str | int] | str = (
@@ -83,7 +80,9 @@ async def logging_middleware(
                 redacted_resp_body: Any = []  # pyright: ignore[reportExplicitAny]
                 # Redact response body
                 if isinstance(resp_body, list):
-                    redacted_resp_body = [filter_sensitive(data=item) for item in resp_body]
+                    redacted_resp_body = [
+                        filter_sensitive(data=item) for item in resp_body
+                    ]
                 elif isinstance(resp_body, dict):
                     redacted_resp_body = filter_sensitive(data=resp_body)
 

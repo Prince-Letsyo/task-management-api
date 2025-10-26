@@ -1,5 +1,13 @@
 from fastapi import Depends, Request, status
+from fastapi_cache import FastAPICache
+from fastapi_cache.decorator import cache
 from typing import cast
+from app.config import config
+from app.core.cache_utils import (
+    task_detail_cache_key_builder,
+    task_list_cache_key_builder,
+)
+from app.core.redis import SafeJsonCoder
 from app.routers.base import CustomRouter
 from app.schemas import TaskCreate, Task, TaskUpdate
 from app.services import TaskService
@@ -22,6 +30,12 @@ def require_auth(request: Request) -> JWTPayload:
     dependencies=[
         Depends(dependency=require_auth),
     ],
+)
+@cache(
+    coder=SafeJsonCoder,
+    expire=cast(int, config.redis.get("cache_expire")),
+    namespace="task:list",
+    key_builder=task_list_cache_key_builder,  # pyright: ignore[reportArgumentType]
 )
 async def read_tasks(
     request: Request,
@@ -47,6 +61,12 @@ async def read_tasks(
     dependencies=[
         Depends(dependency=require_auth),
     ],
+)
+@cache(
+    coder=SafeJsonCoder,
+    expire=cast(int, config.redis.get("cache_expire")),
+    namespace="task:detail",
+    key_builder=task_detail_cache_key_builder,  # pyright: ignore[reportArgumentType]
 )
 async def read_task_by_id(
     request: Request,
@@ -87,6 +107,12 @@ async def create_post(
     new_task: Task = await task_service.create_task(
         username=user["username"], task_create=task_create
     )
+    _ = await FastAPICache.clear(namespace=f"task:list:{user.get("username")}")
+    await FastAPICache.get_backend().set(
+        key=f"{FastAPICache.get_prefix()}:task:detail:{user.get("username")}:{new_task.id}",
+        value=SafeJsonCoder.encode(new_task),
+        expire=FastAPICache.get_expire(),
+    )
     return new_task
 
 
@@ -114,6 +140,10 @@ async def update_task(
     user: JWTPayload = cast(JWTPayload, request.state.user)
     updated_task: Task = await task_service.update_task(
         username=user["username"], task_id=task_id, task_update=task_update
+    )
+    _ = await FastAPICache.clear(namespace=f"task:list:{user.get("username")}")
+    _ = await FastAPICache.clear(
+        namespace=f"task:detail:{user.get("username")}:{updated_task.id}"
     )
     return updated_task
 
@@ -143,6 +173,10 @@ async def partial_update_task(
     partial_updated_task: Task = await task_service.update_task(
         username=user["username"], task_id=task_id, task_update=task_update
     )
+    _ = await FastAPICache.clear(namespace=f"task:list:{user.get("username")}")
+    _ = await FastAPICache.clear(
+        namespace=f"task:detail:{user.get("username")}:{partial_updated_task.id}"
+    )
     return partial_updated_task
 
 
@@ -150,7 +184,7 @@ async def partial_update_task(
     path="/{task_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     dependencies=[
-        Depends(require_auth),
+        Depends(dependency=require_auth),
     ],
 )
 async def delete_task(
@@ -161,6 +195,11 @@ async def delete_task(
     ),
 ) -> None:
     user: JWTPayload = cast(JWTPayload, request.state.user)
-    _success: bool = await task_service.delete_task(
+    success: bool = await task_service.delete_task(
         username=user["username"], task_id=task_id
     )
+    if success:
+        _ = await FastAPICache.clear(namespace=f"task:list:{user.get("username")}")
+        _ = await FastAPICache.clear(
+            namespace=f"task:detail:{user.get("username")}:{task_id}"
+        )

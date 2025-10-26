@@ -1,6 +1,7 @@
 from typing import override
 from sqlalchemy.exc import DataError, IntegrityError, NoResultFound
 from app.core import AppException, ConflictException, NotFoundException
+from app.core.cache_utils import cache_task_details
 from app.schemas import TaskCreate, Task, TaskUpdate
 from app.repositories.base_repository import BaseTaskRepository
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -18,7 +19,9 @@ class TaskSQLRepository(BaseTaskRepository):
             result: ScalarResult[Task] = await self.db.exec(
                 select(Task).where(Task.user_id == user_id)
             )
-            return list[Task](result.all())
+            task_list = list[Task](result.all())
+            await cache_task_details(tasks=task_list)
+            return task_list
         except Exception as e:
             raise e
 

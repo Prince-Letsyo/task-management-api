@@ -1,6 +1,19 @@
-from sqlmodel import SQLModel, Field
+from datetime import datetime
+from sqlmodel import Column, SQLModel, Field,DateTime
 from pydantic import ConfigDict
 
+
+class AccessToken(SQLModel):
+    token: str = Field(nullable=False)
+    duration:datetime=Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+    model_config: ConfigDict = ConfigDict(from_attributes=True)  # pyright: ignore[reportIncompatibleVariableOverride]
+
+class RefreshToken(SQLModel):
+    token: str = Field(nullable=False)
+    duration:datetime=Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+    model_config: ConfigDict = ConfigDict(from_attributes=True)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 class TokenBase(SQLModel):
     access_token: str = Field(nullable=False)
@@ -9,8 +22,9 @@ class TokenBase(SQLModel):
     model_config: ConfigDict = ConfigDict(from_attributes=True)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
-class TokenModel(TokenBase):
-    pass
+class TokenModel(SQLModel):
+    access_token: AccessToken
+    refresh_token: RefreshToken
 
 
 class TokenError(SQLModel):

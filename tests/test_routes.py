@@ -1,6 +1,6 @@
 import pytest
 from app.main import app
-from app.db import AsyncSessionLocal
+from app.core.db import AsyncSessionLocal
 from fastapi.testclient import TestClient
 
 

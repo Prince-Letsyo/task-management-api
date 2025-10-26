@@ -1,12 +1,13 @@
 from typing import cast
 from sqlmodel import Field, Relationship
-from .user_schemas import UserCreate
+from .user_schemas import UserBase
 from .task_schemas import TaskBase
 
 
-class UserModel(UserCreate, table=True):
+class UserModel(UserBase, table=True):
     __tablename__ = "users"  # pyright: ignore[reportUnannotatedClassAttribute, reportAssignmentType]
     id: int | None = Field(default=None, primary_key=True, index=True)
+    hashed_password: str = Field(nullable=False, max_length=256)
     tasks: list["TaskModel"] = cast(
         list["TaskModel"], Relationship(back_populates="user")
     )

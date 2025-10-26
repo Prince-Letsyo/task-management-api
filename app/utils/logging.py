@@ -1,8 +1,7 @@
-from typing import Any
-
-
-import re
 import json
+import re
+from re import Pattern
+from typing import Any
 from loguru import logger
 from loguru._handler import Message
 from app.config import config
@@ -44,8 +43,8 @@ def app_logger():
 
 
 # Regex patterns
-PASSWORD_PATTERN = re.compile(r"\b[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]\b", re.IGNORECASE)
-TOKEN_PATTERN = re.compile(r"\b(token|api_key|secret|auth)\b", re.IGNORECASE)
+PASSWORD_PATTERN: Pattern[str] = re.compile(r"\b[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]\b", re.IGNORECASE)
+TOKEN_PATTERN: Pattern[str] = re.compile(r"\b(token|api_key|secret|auth)\b", re.IGNORECASE)
 
 
 def filter_sensitive(data: dict[str, str | int] | str):

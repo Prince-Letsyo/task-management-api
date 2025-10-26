@@ -1,3 +1,6 @@
+from sqlalchemy.ext.asyncio.engine import AsyncEngine
+
+
 from collections.abc import AsyncGenerator
 from typing import cast
 from sqlmodel import SQLModel
@@ -7,7 +10,7 @@ from app.config import config
 
 
 # Create async engine
-engine = create_async_engine(cast(str, config.database.get("url")), echo=False)
+engine: AsyncEngine = create_async_engine(url=cast(str, config.database.get("url")), echo=False)
 
 # Create async session factory
 AsyncSessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker[AsyncSession](

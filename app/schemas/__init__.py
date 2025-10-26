@@ -1,6 +1,12 @@
 from .user_schemas import UserCreate, UserUpdate, UserError, UserBase, AuthLogin
 from .task_schemas import TaskCreate, TaskUpdate, TaskError
-from .token_schemas import TokenModel as Token, TokenError, TokenData
+from .token_schemas import (
+    TokenModel as Token,
+    TokenError,
+    TokenData,
+    RefreshToken,
+    AccessToken,
+)
 from .user_task_relation_schemas import UserModel as User, TaskModel as Task
 
 __all__ = [
@@ -16,5 +22,7 @@ __all__ = [
     "Token",
     "TokenError",
     "TokenData",
+    "RefreshToken",
+    "AccessToken",
     "AuthLogin",
 ]

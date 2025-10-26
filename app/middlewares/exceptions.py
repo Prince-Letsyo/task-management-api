@@ -2,7 +2,6 @@ from typing import Any
 from fastapi import Request, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-
 from app.core import AppException
 
 

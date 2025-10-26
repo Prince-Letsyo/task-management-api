@@ -1,10 +1,10 @@
 from typing import ClassVar, Self
 from fastapi import Depends
 from sqlmodel.ext.asyncio.session import AsyncSession
-from .db import get_db_session
 from app.repositories import TaskSQLRepository, AuthSQLRepository
 from app.repositories.base_repository import BaseTaskRepository, BaseAuthRepository
 from app.services import TaskService, AuthService
+from .db import get_db_session
 
 
 class DependencyContainer:
@@ -21,8 +21,8 @@ class DependencyContainer:
 
     async def initialize(self, db: AsyncSession) -> None:
         if self.task_repository is None or self.auth_repository is None:
-            self.task_repository = TaskSQLRepository(db)
-            self.auth_repository = AuthSQLRepository(db)
+            self.task_repository = TaskSQLRepository(db=db)
+            self.auth_repository = AuthSQLRepository(db=db)
 
             # Initialize services with singleton repositories
             self.task_service = TaskService(
@@ -47,7 +47,7 @@ async def get_task_service(
         dependency=get_db_session
     ),  # pyright: ignore[reportCallInDefaultInitializer]
 ) -> TaskService:
-    await dependency_container.initialize(session)
+    await dependency_container.initialize(db=session)
     if dependency_container.task_service is None:
         raise ValueError(
             "TaskService not initialized. Ensure repositories are set up first."
