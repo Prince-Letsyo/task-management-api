@@ -32,7 +32,6 @@ async def init_redis() -> None:
             prefix="fastapi-cache",
             expire=cast(int, config.redis.get("cache_expire")),
         )
-        print("✅ Redis cache initialized successfully.")
     except ConnectionError as e:
         print(f"❌ Redis connection failed: {e}")
         raise RuntimeError("Failed to initialize Redis cache") from e

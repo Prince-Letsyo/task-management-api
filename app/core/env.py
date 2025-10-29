@@ -14,6 +14,10 @@ class EnvConfig(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30)
     REFRESH_TOKEN_EXPIRE_WEEKS: int = Field(default=4)
     DB_URL: HttpUrl | str | None = None  # Optional URL
+    DB_NAME: str | None = None  # Optional URL
+    DB_PWD: str | None = None  # Optional URL
+    DB_USER: str | None = None  # Optional URL
+    TEST_DB_NAME: str | None = None  # Optional URL
     REDIS_URL: HttpUrl | str | None = None  # Optional URL
     REDIS_CACHE_EXPIRE: int = Field(default=300)
 

@@ -44,9 +44,9 @@ class AuthService:
         )
         return self.__prepare_token_data(user)
 
-    async def get_access_token(self, token_string: str):
+    async def get_access_token(self, token_string: str) -> AccessToken | None:
         try:
-            payload: dict[str, str] = jwt_auth_token.decode_token(token_string)
+            payload: dict[str, str] = jwt_auth_token.decode_token(token=token_string)
             if payload:
                 access_token, access_timestamp = jwt_auth_token.access_token(
                     data={

@@ -18,12 +18,22 @@ from app.middlewares import (
     logging_middleware,
     validation_exception_handler,
 )
+from app.utils import main_logger
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
-    await init_db()
-    await init_redis()
+    main_logger.info("🚀 Starting database migration...")
+    try:
+        await init_db()
+        main_logger.info("✅ Database migration completed!")
+        await init_redis()
+        main_logger.info("✅ Redis cache initialized successfully.")
+    except ConnectionError as e:
+        main_logger.error(f"❌ Redis connection failed: {e}")
+    except Exception as e:
+        main_logger.error(f"❌ Migration failed: {e}")
+        raise e
     yield
 
 

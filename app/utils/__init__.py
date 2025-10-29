@@ -3,6 +3,7 @@ from .auth import (
     jwt_auth_token,
     JWTPayload,
 )
+from .alembic_utils import upgrade_database, downgrade_database
 
 from .logging import main_logger, filter_sensitive
 
@@ -13,4 +14,6 @@ __all__ = [
     "main_logger",
     "filter_sensitive",
     "JWTPayload",
+    "upgrade_database",
+    "downgrade_database",
 ]
