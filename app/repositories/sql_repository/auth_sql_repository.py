@@ -1,3 +1,4 @@
+from pydantic import EmailStr
 from sqlalchemy import ScalarResult
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlmodel import select
@@ -36,6 +37,27 @@ class AuthSQLRepository(BaseAuthRepository):
             raise e
 
     @override
+    async def activate_user_account(self, username: str) -> User:
+        try:
+            result: ScalarResult[User] = await self.db.exec(
+                select(User).where(User.username == username)
+            )
+            user: User = result.one()
+            if user.is_active: 
+                raise AppException(message="User account is already active.")
+            user.is_active = True
+            self.db.add(instance=user)
+            await self.db.commit()
+            await self.db.refresh(instance=user)
+            return user
+        except NoResultFound as e:
+            raise NotFoundException(
+                message=f"User with username '{username}' does not exist",
+            )
+        except Exception as e:
+            raise e
+
+    @override
     async def authenticate_user(self, username: str, password: str) -> User:
         try:
             user: User = await self.get_user_by_username(username)
@@ -53,11 +75,45 @@ class AuthSQLRepository(BaseAuthRepository):
             result: ScalarResult[User] = await self.db.exec(
                 select(User).where(User.username == username)
             )
-            return result.one()
-        
+            user = result.one()
+            if user.is_active is False:
+                raise AppException(message="User account is not active")
+            return user
+
         except NoResultFound as e:
             raise NotFoundException(
                 message=f"Incorrect username or password",
+            )
+        except Exception as e:
+            raise e
+
+    @override
+    async def get_user_by_email(self, email: EmailStr) -> User:
+        try:
+            result: ScalarResult[User] = await self.db.exec(
+                select(User).where(User.email == email)
+            )
+            return result.one()
+
+        except NoResultFound as e:
+            raise NotFoundException(
+                message=f"Incorrect username or password",
+            )
+        except Exception as e:
+            raise e
+
+    @override
+    async def update_user_password(self, email: EmailStr, new_password: str) -> User:
+        try:
+            user: User = await self.get_user_by_email(email=email)
+            user.hashed_password = password_validator.get_password_hash(new_password)
+            self.db.add(instance=user)
+            await self.db.commit()
+            await self.db.refresh(instance=user)
+            return user
+        except NoResultFound as e:
+            raise NotFoundException(
+                message=f"User with email '{email}' does not exist",
             )
         except Exception as e:
             raise e

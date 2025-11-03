@@ -84,6 +84,7 @@ app.add_exception_handler(
     exc_class_or_status_code=RequestValidationError,
     handler=validation_exception_handler,  # pyright: ignore[reportArgumentType]
 )
+
 app.add_exception_handler(
     exc_class_or_status_code=HTTPException,
     handler=http_exception_handler,  # pyright: ignore[reportArgumentType]

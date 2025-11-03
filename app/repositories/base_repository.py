@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+from pydantic import EmailStr
 from app.schemas import TaskCreate, Task, TaskUpdate, User, UserCreate
 
 
@@ -46,4 +48,16 @@ class BaseAuthRepository(ABC):
 
     @abstractmethod
     async def get_user_by_username(self, username: str) -> User:
+        pass
+
+    @abstractmethod
+    async def get_user_by_email(self, email: EmailStr) -> User:
+        pass
+
+    @abstractmethod
+    async def activate_user_account(self, username: str) -> User:
+        pass
+    
+    @abstractmethod
+    async def update_user_password(self, email: EmailStr, new_password: str) -> User:
         pass

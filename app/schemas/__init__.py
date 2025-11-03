@@ -6,6 +6,7 @@ from .token_schemas import (
     TokenData,
     RefreshToken,
     AccessToken,
+    ActivateAccountToken,
 )
 from .user_task_relation_schemas import UserModel as User, TaskModel as Task
 
@@ -24,5 +25,6 @@ __all__ = [
     "TokenData",
     "RefreshToken",
     "AccessToken",
+    "ActivateAccountToken",
     "AuthLogin",
 ]

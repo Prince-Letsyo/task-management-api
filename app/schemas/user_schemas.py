@@ -7,7 +7,7 @@ from app.utils import password_validator
 
 class UserBase(SQLModel):
     username: str = Field(index=True, nullable=False, unique=True)
-    email: EmailStr = Field(index=True, nullable=False)
+    email: EmailStr = Field(index=True,nullable=False, unique=True)
 
     model_config: ConfigDict = (  # pyright: ignore[reportIncompatibleVariableOverride]
         ConfigDict(from_attributes=True)

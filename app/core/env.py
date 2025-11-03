@@ -20,7 +20,8 @@ class EnvConfig(BaseSettings):
     TEST_DB_NAME: str | None = None  # Optional URL
     REDIS_URL: HttpUrl | str | None = None  # Optional URL
     REDIS_CACHE_EXPIRE: int = Field(default=300)
-
+    FRONTEND_URL: HttpUrl | str | None = None  # Optional URL
+    
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         env_file="./.env",
         env_file_encoding="utf-8",

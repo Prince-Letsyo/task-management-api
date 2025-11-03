@@ -14,6 +14,11 @@ class RefreshToken(SQLModel):
     duration:datetime=Field(sa_column=Column(DateTime(timezone=True), nullable=False))
 
     model_config: ConfigDict = ConfigDict(from_attributes=True)  # pyright: ignore[reportIncompatibleVariableOverride]
+class ActivateAccountToken(SQLModel):
+    token: str = Field(nullable=False)
+    duration:datetime=Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+
+    model_config: ConfigDict = ConfigDict(from_attributes=True)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 class TokenBase(SQLModel):
     access_token: str = Field(nullable=False)
@@ -25,6 +30,7 @@ class TokenBase(SQLModel):
 class TokenModel(SQLModel):
     access_token: AccessToken
     refresh_token: RefreshToken
+    model_config: ConfigDict = ConfigDict(from_attributes=True)  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
 class TokenError(SQLModel):

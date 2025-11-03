@@ -36,7 +36,7 @@ class JWTAuthToken:
             expires_delta (timedelta | None, optional): Token duration of existing. Defaults to None.
 
         Returns:
-            str: token string
+           tuple[str, datetime]: token string and expiration datetime
         """
         to_encode: JWTPayload = data.copy()
         if expires_delta:
@@ -55,7 +55,18 @@ class JWTAuthToken:
 
         return encoded_jwt, expire
 
-    def access_token(self, data: JWTPayload):
+    def activate_token(self, data: JWTPayload) -> tuple[str, datetime]:
+        """Create account activation JWT token that should last for about 15 minutes
+
+        Args:
+            data (JWTPayload): payload
+            expires_delta (timedelta | None, optional): Token duration of existing. Defaults to None.
+        Returns:
+            tuple[str, datetime]: token string and expiration datetime
+        """
+        return self.__create_token(data)
+
+    def access_token(self, data: JWTPayload) -> tuple[str, datetime]:
         """Create access JWT access token that should last for about a 30 minutes
 
         Args:
@@ -63,7 +74,7 @@ class JWTAuthToken:
             expires_delta (timedelta | None, optional): Token duration of existing. Defaults to None.
 
         Returns:
-            str: token string
+            tuple[str, datetime]: token string and expiration datetime
         """
         return self.__create_token(
             data,
@@ -72,7 +83,7 @@ class JWTAuthToken:
             ),
         )
 
-    def refresh_token(self, data: JWTPayload):
+    def refresh_token(self, data: JWTPayload) -> tuple[str, datetime]:
         """Create refresh JWT access token that should last for about a month
 
         Args:
@@ -80,7 +91,7 @@ class JWTAuthToken:
             expires_delta (timedelta | None, optional): Token duration of existing. Defaults to None.
 
         Returns:
-            str: token string
+            tuple[str, datetime]: token string and expiration datetime
         """
         return self.__create_token(
             data,

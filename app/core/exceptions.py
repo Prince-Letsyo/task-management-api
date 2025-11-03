@@ -8,6 +8,8 @@ class UserExistException(Exception):
 
 class UserDoesnotExistException(Exception):
     pass
+class UserAccountNotActiveException(Exception):
+    pass
 
 
 class AppException(Exception):

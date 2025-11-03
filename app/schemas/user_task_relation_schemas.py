@@ -8,6 +8,7 @@ class UserModel(UserBase, table=True):
     __tablename__ = "users"  # pyright: ignore[reportUnannotatedClassAttribute, reportAssignmentType]
     id: int | None = Field(default=None, primary_key=True, index=True)
     hashed_password: str = Field(nullable=False, max_length=256)
+    is_active:bool=Field(default=False, nullable=False)
     tasks: list["TaskModel"] = cast(
         list["TaskModel"], Relationship(back_populates="user")
     )
